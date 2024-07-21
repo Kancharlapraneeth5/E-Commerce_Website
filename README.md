@@ -18,7 +18,7 @@ You need to have Node.js and npm installed on your machine. This project was bui
 First, clone the repository to your local machine:
 
 ```sh
-git clone <repository-url>
+git clone <https://github.com/Kancharlapraneeth5/GraphQL_E-Commerce_Project.git>
 
 Then, navigate to the project directory and install dependencies:
 cd e-commerce
