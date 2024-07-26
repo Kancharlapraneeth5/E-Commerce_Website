@@ -32,13 +32,16 @@ exports.Query = {
     if (!result) return null;
     return result;
   },
+  // for the below need MongoDB to be implemented
   categories: (parent, args, { db }) => db.categories,
+  // for the below need MongoDB to be implemented
   category: (parent, args, { db }) => {
     const { id } = args;
     const result = db.categories.find((category) => category.id === id);
     if (!result) return null;
     return result;
   },
+  // for the below need MongoDB to be implemented
   categoryByName: (parent, args, { db }) => {
     const { name } = args;
     const result = db.categories.find((category) => category.name === name);

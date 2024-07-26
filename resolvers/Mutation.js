@@ -7,6 +7,7 @@ exports.Mutation = {
       id: uuid(),
       name,
     };
+    // Here we need to push the newCategory to the MongoDB instead of the below.
     db.categories.push(newCategory);
 
     return newCategory;

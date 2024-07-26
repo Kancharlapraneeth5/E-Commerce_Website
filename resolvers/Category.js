@@ -1,4 +1,5 @@
 exports.Category = {
+  // Modify the below method with MongoDB collections
   products: ({ id }, { filter }, { db }) => {
     let filterCategoryProducts = db.products.filter(
       (product) => product.categoryId === id
