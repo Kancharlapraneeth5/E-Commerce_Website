@@ -9,7 +9,9 @@ const { Query } = require("./resolvers/Query");
 const { Mutation } = require("./resolvers/Mutation");
 const { Category } = require("./resolvers/Category");
 const { Product } = require("./resolvers/Product");
-const { db } = require("./db");
+const { ProductModel } = require("./models/productsModel");
+const { CategoryModel } = require("./models/categoriesModel");
+const { ReviewModel } = require("./models/reviewsModel");
 
 // Create an instance of Express
 const app = express();
@@ -45,7 +47,9 @@ const server = new ApolloServer({
     Category,
   },
   context: {
-    db,
+    ProductModel,
+    CategoryModel,
+    ReviewModel,
   },
 });
 

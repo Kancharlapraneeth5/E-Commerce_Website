@@ -1,23 +1,19 @@
+// MODIFIED....
+
+const product = require("../models/productsModel");
+
 exports.Category = {
   // Modify the below method with MongoDB collections
-  products: ({ id }, { filter }, { db }) => {
-    let filterCategoryProducts = db.products.filter(
-      (product) => product.categoryId === id
-    );
-    console.log(filterCategoryProducts);
+  products: async ({ id }, { filter }) => {
+    let query = { categoryId: id };
+
     if (filter) {
-      if (filter.onSale === true) {
-        filterCategoryProducts = filterCategoryProducts.filter(
-          (product) => product.onSale === true
-        );
-        console.log(filterCategoryProducts);
-      } else if (filter.onSale === false) {
-        filterCategoryProducts = filterCategoryProducts.filter(
-          (product) => product.onSale === false
-        );
+      if (filter.onSale !== undefined) {
+        query.onSale = filter.onSale;
       }
     }
-    console.log(filterCategoryProducts);
+
+    const filterCategoryProducts = await product.find(query);
     return filterCategoryProducts;
   },
 };

@@ -1,18 +1,22 @@
+// MODIFIED....
+
+const category = require("../models/categoriesModel");
+const product = require("../models/productsModel");
+const review = require("../models/reviewsModel");
+
 const { v4: uuid } = require("uuid");
 
 exports.Mutation = {
-  addNewCategory: (parent, { input }, { db }) => {
+  addNewCategory: (parent, { input }) => {
     const { name } = input;
     const newCategory = {
       id: uuid(),
       name,
     };
-    // Here we need to push the newCategory to the MongoDB instead of the below.
-    db.categories.push(newCategory);
-
+    category.create(newCategory);
     return newCategory;
   },
-  addNewProduct: (parent, { input }, { db }) => {
+  addNewProduct: (parent, { input }) => {
     const { name, image, price, onSale, quantity, categoryId, description } =
       input;
     const newProduct = {
@@ -25,43 +29,72 @@ exports.Mutation = {
       categoryId,
       description,
     };
-    db.products.push(newProduct);
 
+    product.create(newProduct);
     return newProduct;
   },
-  deleteCategory: (parent, { id }, { db }) => {
-    db.categories = db.categories.filter((category) => category.id !== id);
-    db.products = db.products.map((product) => {
-      if (product.categoryId === id)
-        return {
-          // The syntax ...product in JavaScript is called the spread syntax or spread operator.
-          // It is used to expand an iterable (like an array or a string) into individual elements
 
-          // Usage --> const product = ["Apple", "Banana", "Orange"];
-          // console.log(...product);
-          // Output: Apple Banana Orange
-          ...product,
-          categoryId: null,
-        };
-      else return product;
+  addNewProducts: (parent, { input }) => {
+    const newProducts = input.map((productInput) => {
+      const { name, image, price, onSale, quantity, categoryId, description } =
+        productInput;
+      const newProduct = {
+        id: uuid(),
+        name,
+        image,
+        price,
+        onSale,
+        quantity,
+        categoryId,
+        description,
+      };
+
+      return newProduct;
     });
-    return true;
+
+    product.create(newProducts);
+    return newProducts;
   },
-  deleteProduct: (parent, { id }, { db }) => {
-    db.products = db.products.filter((product) => product.id !== id);
-    db.reviews = db.reviews.filter((review) => review.productId !== id);
-    return true;
-  },
-  deleteReview: (parent, { id }, { db }) => {
-    db.reviews = db.reviews.filter((review) => review.id !== id);
-    return true;
-  },
-  updateCategory: (parent, { id, input }, { db }) => {
-    const index = db.categories.findIndex((category) => category.id === id);
-    db.categories[index] = {
-      ...db.categories[index],
-      ...input,
+
+  addNewReview: (parent, { input }) => {
+    const { date, title, comment, rating, productID } = input;
+    const newReview = {
+      id: uuid(),
+      date,
+      title,
+      comment,
+      rating,
+      productID,
     };
-    return db.categories[index];
+
+    review.create(newReview);
+    return newReview;
+  },
+
+  deleteCategory: async (parent, { id }) => {
+    await category.findByIdAndDelete(id);
+    await product.updateMany(
+      { categoryId: id },
+      { $set: { categoryId: null } }
+    );
+    return true;
+  },
+  deleteProduct: async (parent, { id }) => {
+    await product.findByIdAndDelete(id);
+    await review.deleteMany({ productId: id });
+    return true;
+  },
+  deleteReview: async (parent, { id }) => {
+    await review.findByIdAndDelete(id);
+    return true;
+  },
+  updateCategory: async (parent, { id, input }) => {
+    // { new: true }: This is an options object. The new option, when set to true, means that the method
+    // should return the updated document. If new is false or not provided, the method would return the original
+    // document before it was updated.
+    const updatedCategory = await category.findByIdAndUpdate(id, input, {
+      new: true,
+    });
+    return updatedCategory;
   },
 };
