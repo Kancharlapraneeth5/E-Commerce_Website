@@ -1,10 +1,20 @@
+// MODIFIED....
+const mongoose = require("mongoose");
+
+const category = require("../models/categoriesModel");
+const review = require("../models/reviewsModel");
+
 exports.Product = {
-  category: (parent, args, { db }) => {
+  category: async (parent, args) => {
     const categoryId = parent.categoryId;
-    return db.categories.find((category) => category.id === categoryId);
+    const Category = await category.findById(categoryId);
+    return Category;
   },
 
-  reviews: ({ id }, args, { db }) => {
-    return db.reviews.filter((review) => review.productId === id);
+  reviews: async ({ id }, args) => {
+    const reviews = await review.find({ productId: id });
+    return reviews;
+    // below is the previous one.
+    // return db.reviews.filter((review) => review.productId === id);
   },
 };

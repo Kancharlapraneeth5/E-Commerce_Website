@@ -2,17 +2,19 @@
   "name": "e-commerce",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index"
+    "start": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "apollo-server": "^3.12.0",
+    "dotenv": "^16.4.5",
     "graphql": "^16.6.0",
+    "mongoose": "^8.5.1",
     "uuid": "^9.0.0"
   }
 }
