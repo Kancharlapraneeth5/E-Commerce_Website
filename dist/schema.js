@@ -1,12 +1,18 @@
-const { gql } = require("apollo-server");
-exports.typeDefs = gql`
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.typeDefs = void 0;
+const apollo_server_1 = require("apollo-server");
+exports.typeDefs = (0, apollo_server_1.gql) `
   type Query {
     products(filter: ProductFilterInput): [Product!]!
-    product(id: ID!): Product
-    productByName(name: String!): Product
+    product(productId: ID!): Product
+    productByName(productName: String!): Product
     categories: [Category!]!
-    category(id: ID!): Category
-    categoryByName(name: String!): Category
+    category(categoryId: ID!): Category
+    categoryByName(categoryName: String!): Category
+    reviews: [Review!]!
+    review(reviewId: ID!): Review
+    productsByReviewRating(rating: Int!): [Product]
   }
 
   type Mutation {
@@ -44,7 +50,7 @@ exports.typeDefs = gql`
     title: String!
     comment: String!
     rating: Int!
-    productID: ID!
+    productId: String
   }
 
   type User {
@@ -56,6 +62,10 @@ exports.typeDefs = gql`
 
   input ProductFilterInput {
     onSale: Boolean
+  }
+
+  input ReviewFilterInput {
+    rating: Int
   }
 
   input AddCategoryInput {
@@ -81,7 +91,7 @@ exports.typeDefs = gql`
     title: String!
     comment: String!
     rating: Int!
-    productID: String!
+    productId: String!
   }
 
   input AddUserInput {
