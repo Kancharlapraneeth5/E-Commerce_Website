@@ -168,41 +168,40 @@ export const Mutation = {
     }
   },
 
+  // the below mutation is for adding a new user to the database
+  // like a signup operation so don't need to check the role
   addNewUser: async (
     parent: any,
     { input }: { input: UserInput },
     context: Context
   ) => {
-    if (context.user.role === "admin") {
-      const { username, password, role } = input;
+    const { username, password, role } = input;
 
-      const hashedPassword = await bcrypt.hash(password, 10);
+    console.log("the input is.." + JSON.stringify(input));
 
-      const newUser = {
-        id: uuid(),
-        username,
-        password: hashedPassword,
-        role,
-      };
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-      try {
+    const newUser = {
+      id: uuid(),
+      username,
+      password: hashedPassword,
+      role,
+    };
+
+    const existingUser = await context.PeopleModel.findOne({ username });
+    console.log("existing user is.." + JSON.stringify(existingUser));
+    try {
+      if (existingUser) {
+        console.log("Username must be unique");
+        throw new ApolloError("Username must be unique", "Conflict", {
+          statusCode: 409,
+        });
+      } else {
         await context.PeopleModel.create(newUser);
         return newUser;
-      } catch (err) {
-        if (
-          (err as MyError).errmsg.includes("duplicate key error") &&
-          (err as MyError).code === 11000
-        ) {
-          throw new ApolloError("Username must be unique", "Conflict", {
-            statusCode: 409,
-          });
-        }
-        throw err;
       }
-    } else {
-      throw new ApolloError("Permission Denied!", "Forbidden", {
-        statusCode: 403,
-      });
+    } catch (err) {
+      throw err;
     }
   },
 

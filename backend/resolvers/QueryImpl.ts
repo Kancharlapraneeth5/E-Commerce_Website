@@ -1,5 +1,5 @@
 import { ApolloError } from "apollo-server-express";
-import { Args, Context, IQuery } from "./Query";
+import { Args, Context, IQueryName } from "./Query";
 
 export const Query = {
   // In Apollo Server, each field in your schema has a corresponding resolver function.
@@ -72,7 +72,7 @@ export const Query = {
     context: Context
   ) => {
     const ProductName = productName;
-    let query: IQuery = { name: ProductName };
+    let query: IQueryName = { name: ProductName };
 
     try {
       const result = await context.ProductModel.findOne(query);
@@ -124,7 +124,7 @@ export const Query = {
     context: Context
   ) => {
     try {
-      let query: IQuery = { name: categoryName };
+      let query: IQueryName = { name: categoryName };
       const result = await context.CategoryModel.findOne(query);
       return result;
     } catch (err) {
@@ -141,6 +141,28 @@ export const Query = {
   reviews: async (parent: any, args: any, context: Context) => {
     try {
       const result = await context.ReviewModel.find();
+      console.log(result);
+      return result;
+    } catch (err) {
+      throw new ApolloError(
+        "An error occurred while fetching the categories",
+        "Internal Server Error",
+        {
+          statusCode: 500,
+        }
+      );
+    }
+  },
+
+  reviewsByProductId: async (
+    parent: any,
+    { productId }: any,
+    context: Context
+  ) => {
+    try {
+      const result = await context.ReviewModel.find({
+        productId: productId,
+      });
       console.log(result);
       return result;
     } catch (err) {
@@ -173,14 +195,39 @@ export const Query = {
 
   productsByReviewRating: async (
     parent: any,
-    { rating }: Args,
+    { minRating, maxRating, categoryId }: Args,
     context: Context
   ): Promise<any> => {
     try {
-      const reviews = await context.ReviewModel.find({ rating: rating });
+      const reviews = await context.ReviewModel.find({
+        rating: { $gte: minRating, $lte: maxRating },
+      });
+      console.log("reviews data", reviews);
       const productIDs = reviews.map((review) => review.get("productId"));
+      console.log("productIDs data", productIDs);
       const products = await context.ProductModel.find({
         _id: { $in: productIDs },
+        categoryId: categoryId,
+      });
+      console.log("products data", products);
+      return products;
+    } catch (err) {
+      throw new ApolloError(
+        "An error occurred while fetching the products",
+        "Internal Server Error",
+        { statusCode: 500 }
+      );
+    }
+  },
+
+  productsByCategory: async (
+    parent: any,
+    { categoryId }: Args,
+    context: Context
+  ): Promise<any> => {
+    try {
+      const products = await context.ProductModel.find({
+        categoryId: categoryId,
       });
       return products;
     } catch (err) {

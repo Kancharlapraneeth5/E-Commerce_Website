@@ -1,6 +1,7 @@
 // Importing the required modules
 import express, { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
+import cors from "cors";
 import { config } from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt, { Secret, JwtPayload } from "jsonwebtoken";
@@ -23,6 +24,8 @@ const { sign, verify } = jwt;
 const app = express();
 
 app.use(express.json());
+
+app.use(cors());
 
 app.post("/auth", async (req: Request, res: Response) => {
   const { username, password } = req.body;
@@ -52,9 +55,21 @@ app.post("/auth", async (req: Request, res: Response) => {
 
 // MIDDLE WARE to verify the user token.
 app.use((req: Request, res: Response, next: NextFunction) => {
+  const operationName = req.body.operationName;
+
+  // List of public operations that do not require authentication
+  const publicOperations = ["AddNewUser"];
+
+  if (publicOperations.includes(operationName)) {
+    // Skip authentication for public operations
+    console.log("I am in correct block!!");
+    return next();
+  }
+
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
+    console.log("I am in wrong block!!");
     return res.status(401).json({ error: "No token provided" });
   }
 
@@ -101,6 +116,24 @@ const server = new ApolloServer({
   },
   introspection: true,
   context: async ({ req }) => {
+    const operationName = req.body.operationName;
+
+    // List of public operations that do not require authentication
+    const publicOperations = ["AddNewUser"];
+
+    console.log("operationName", operationName);
+
+    if (publicOperations.includes(operationName)) {
+      // Skip authentication for public operations
+      return {
+        ProductModel,
+        CategoryModel,
+        ReviewModel,
+        PeopleModel,
+        user: null,
+      };
+    }
+
     const token = req.headers.authorization;
     let user = null;
 
@@ -160,3 +193,6 @@ process.on("unhandledRejection", (err: Error) => {
     });
   });
 });
+function next(): object | PromiseLike<object> {
+  throw new Error("Function not implemented.");
+}

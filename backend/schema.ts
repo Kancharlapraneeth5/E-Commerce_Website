@@ -9,8 +9,14 @@ export const typeDefs = gql`
     category(categoryId: ID!): Category
     categoryByName(categoryName: String!): Category
     reviews: [Review!]!
+    reviewsByProductId(productId: ID!): [Review!]!
     review(reviewId: ID!): Review
-    productsByReviewRating(rating: Int!): [Product]
+    productsByReviewRating(
+      minRating: Int!
+      maxRating: Int!
+      categoryId: ID!
+    ): [Product]
+    productsByCategory(categoryId: ID!): [Product]
   }
 
   type Mutation {
@@ -60,10 +66,6 @@ export const typeDefs = gql`
 
   input ProductFilterInput {
     onSale: Boolean
-  }
-
-  input ReviewFilterInput {
-    rating: Int
   }
 
   input AddCategoryInput {

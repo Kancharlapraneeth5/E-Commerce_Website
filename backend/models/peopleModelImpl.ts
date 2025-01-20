@@ -5,6 +5,7 @@ const peopleSchema = new Schema<IPeople>({
   username: {
     type: String,
     required: [true, "username is required"],
+    unique: true,
   },
   password: {
     type: String,
