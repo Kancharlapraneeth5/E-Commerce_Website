@@ -1,9 +1,27 @@
-const bcrypt = require("bcryptjs");
-const { ApolloError } = require("apollo-server-errors");
-const { v4: uuid } = require("uuid");
+import bcrypt from "bcryptjs";
+import { ApolloError } from "apollo-server-errors";
+import { v4 as uuid } from "uuid";
+import mongoose from "mongoose";
+import {
+  CategoryInput,
+  ProductInput,
+  ProductInputs,
+  ReviewInput,
+  UserInput,
+  updateCategoryInput,
+  deleteCategoryQuery,
+  Context,
+  deleteProductQuery,
+  deleteReviewQuery,
+  MyError,
+} from "./Mutation";
 
-exports.Mutation = {
-  addNewCategory: async (parent, { input }, context) => {
+export const Mutation = {
+  addNewCategory: async (
+    parent: any,
+    { input }: { input: CategoryInput },
+    context: Context
+  ) => {
     if (context.user.role === "admin") {
       const { name } = input;
       const newCategory = {
@@ -15,7 +33,10 @@ exports.Mutation = {
         await context.CategoryModel.create(newCategory);
         return newCategory;
       } catch (err) {
-        if (err.errmsg.includes("duplicate key error") && err.code === 11000) {
+        if (
+          (err as MyError).errmsg.includes("duplicate key error") &&
+          (err as MyError).code === 11000
+        ) {
           throw new ApolloError("Category name must be unique", "Conflict", {
             statusCode: 409,
           });
@@ -28,7 +49,12 @@ exports.Mutation = {
       });
     }
   },
-  addNewProduct: async (parent, { input }, context) => {
+
+  addNewProduct: async (
+    parent: any,
+    { input }: { input: ProductInput },
+    context: Context
+  ) => {
     if (context.user.role === "admin") {
       const { name, image, price, onSale, quantity, categoryId, description } =
         input;
@@ -47,7 +73,10 @@ exports.Mutation = {
         await context.ProductModel.create(newProduct);
         return newProduct;
       } catch (err) {
-        if (err.errmsg.includes("duplicate key error") && err.code === 11000) {
+        if (
+          (err as MyError).errmsg.includes("duplicate key error") &&
+          (err as MyError).code === 11000
+        ) {
           throw new ApolloError("Product name must be unique", "Conflict", {
             statusCode: 409,
           });
@@ -61,9 +90,15 @@ exports.Mutation = {
     }
   },
 
-  addNewProducts: (parent, { input }, context) => {
+  // (try altair to test this mutation)
+  addNewProducts: async (
+    parent: any,
+    { input }: { input: ProductInputs },
+    context: Context
+  ) => {
+    console.log("the input is.." + JSON.stringify(input.products));
     if (context.user.role === "admin") {
-      const newProducts = input.map((productInput) => {
+      const newProducts = input.products.map((productinput) => {
         const {
           name,
           image,
@@ -72,7 +107,7 @@ exports.Mutation = {
           quantity,
           categoryId,
           description,
-        } = productInput;
+        } = productinput;
         const newProduct = {
           id: uuid(),
           name,
@@ -96,23 +131,30 @@ exports.Mutation = {
     }
   },
 
-  addNewReview: async (parent, { input }, context) => {
+  addNewReview: async (
+    parent: any,
+    { input }: { input: ReviewInput },
+    context: Context
+  ) => {
     if (context.user.role === "admin") {
-      const { date, title, comment, rating, productID } = input;
+      const { date, title, comment, rating, productId } = input;
       const newReview = {
         id: uuid(),
         date,
         title,
         comment,
         rating,
-        productID,
+        productId,
       };
 
       try {
         await context.ReviewModel.create(newReview);
         return newReview;
       } catch (err) {
-        if (err.errmsg.includes("duplicate key error") && err.code === 11000) {
+        if (
+          (err as MyError).errmsg.includes("duplicate key error") &&
+          (err as MyError).code === 11000
+        ) {
           throw new ApolloError("Review must be unique", "Conflict", {
             statusCode: 409,
           });
@@ -126,48 +168,57 @@ exports.Mutation = {
     }
   },
 
-  addNewUser: async (parent, { input }, context) => {
-    console.log("the context is..." + context.user);
-    console.log("the context is..." + context.user.role);
+  // the below mutation is for adding a new user to the database
+  // like a signup operation so don't need to check the role
+  addNewUser: async (
+    parent: any,
+    { input }: { input: UserInput },
+    context: Context
+  ) => {
+    const { username, password, role } = input;
 
-    if (context.user.role === "admin") {
-      const { username, password, role } = input;
+    console.log("the input is.." + JSON.stringify(input));
 
-      const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-      const newUser = {
-        id: uuid(),
-        username,
-        password: hashedPassword,
-        role,
-      };
+    const newUser = {
+      id: uuid(),
+      username,
+      password: hashedPassword,
+      role,
+    };
 
-      try {
+    const existingUser = await context.PeopleModel.findOne({ username });
+    console.log("existing user is.." + JSON.stringify(existingUser));
+    try {
+      if (existingUser) {
+        console.log("Username must be unique");
+        throw new ApolloError("Username must be unique", "Conflict", {
+          statusCode: 409,
+        });
+      } else {
         await context.PeopleModel.create(newUser);
         return newUser;
-      } catch (err) {
-        if (err.errmsg.includes("duplicate key error") && err.code === 11000) {
-          throw new ApolloError("Username must be unique", "Conflict", {
-            statusCode: 409,
-          });
-        }
-        throw err;
       }
-    } else {
-      throw new ApolloError("Permission Denied!", "Forbidden", {
-        statusCode: 403,
-      });
+    } catch (err) {
+      throw err;
     }
   },
 
-  deleteCategory: async (parent, { id }, context) => {
+  deleteCategory: async (
+    parent: any,
+    { categoryID }: { categoryID: string },
+    context: Context
+  ) => {
     if (context.user.role === "admin") {
       try {
-        await context.CategoryModel.findByIdAndDelete(id);
-        await context.ProductModel.updateMany(
-          { categoryId: id },
-          { $set: { categoryId: null } }
-        );
+        let query: deleteCategoryQuery = {
+          // converting the string to ObjectId
+          categoryId: new mongoose.Types.ObjectId(categoryID),
+        };
+        let updateOperation = { $set: { categoryId: null } };
+        await context.CategoryModel.findByIdAndDelete(query.categoryId);
+        await context.ProductModel.updateMany(query, updateOperation);
         return true;
       } catch (err) {
         throw new ApolloError(
@@ -184,11 +235,19 @@ exports.Mutation = {
       });
     }
   },
-  deleteProduct: async (parent, { id }, context) => {
+
+  deleteProduct: async (
+    parent: any,
+    { productID }: { productID: string },
+    context: Context
+  ) => {
     if (context.user.role === "admin") {
       try {
-        await context.ProductModel.findByIdAndDelete(id);
-        await context.ReviewModel.deleteMany({ productId: id });
+        let query: deleteProductQuery = {
+          productId: new mongoose.Types.ObjectId(productID),
+        };
+        await context.ProductModel.findByIdAndDelete(query.productId);
+        await context.ReviewModel.deleteMany(query);
         return true;
       } catch (err) {
         throw new ApolloError(
@@ -205,10 +264,15 @@ exports.Mutation = {
       });
     }
   },
-  deleteReview: async (parent, { id }, context) => {
+
+  deleteReview: async (
+    parent: any,
+    { reviewID }: { reviewID: string },
+    context: Context
+  ) => {
     if (context.user.role === "admin") {
       try {
-        await context.ReviewModel.findByIdAndDelete(id);
+        await context.ReviewModel.findByIdAndDelete(reviewID);
         return true;
       } catch (err) {
         throw new ApolloError(
@@ -225,13 +289,20 @@ exports.Mutation = {
       });
     }
   },
-  updateCategory: async (parent, { id, input }, context) => {
+
+  updateCategory: async (
+    parent: any,
+    { categoryID, input }: { categoryID: string; input: updateCategoryInput },
+    context: Context
+  ) => {
     if (context.user.role === "admin") {
       try {
         const updatedCategory = await context.CategoryModel.findByIdAndUpdate(
-          id,
+          categoryID,
           input,
           {
+            // By default, MongoDB's findByIdAndUpdate operation returns the original document before it was updated.
+            // If you set new: true, it will return the updated document.
             new: true,
           }
         );

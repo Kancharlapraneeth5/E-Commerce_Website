@@ -1,20 +1,28 @@
-const fs = require("fs");
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-dotenv.config({ path: "./../config.env" });
-const Category = require("./../models/categoriesModel");
-const Product = require("./../models/productsModel");
-const Review = require("./../models/reviewsModel");
-const People = require("../models/peopleModel");
+import * as fs from "fs";
+import mongoose, { Model, Document } from "mongoose";
+import * as dotenv from "dotenv";
+import Category from "../models/categoryModelImpl";
+import Product from "../models/productModelImpl";
+import Review from "../models/reviewModelImpl";
+import People from "../models/peopleModelImpl";
 
-const DB = process.env.DATABASE.replace(
+dotenv.config({ path: "./../config.env" });
+
+const DB = process.env.DATABASE!.replace(
   "<PASSWORD>",
-  process.env.DATABASE_PASSWORD
+  process.env.DATABASE_PASSWORD!
 );
 
 mongoose.connect(DB).then((con) => console.log("DB connection successful !"));
 
-const dataMap = {
+interface DataMap {
+  [key: string]: {
+    data: any;
+    model: Model<any>;
+  };
+}
+
+const dataMap: DataMap = {
   "Categories.json": {
     data: JSON.parse(fs.readFileSync(`${__dirname}/Categories.json`, "utf-8")),
     model: Category,
@@ -33,7 +41,7 @@ const dataMap = {
   },
 };
 
-const importData = async (model, data) => {
+const importData = async (model: Model<Document, {}>, data: any) => {
   try {
     await model.create(data);
     console.log("Data successfully loaded!");
@@ -43,7 +51,7 @@ const importData = async (model, data) => {
   process.exit();
 };
 
-const deleteData = async (model) => {
+const deleteData = async (model: Model<Document, {}>) => {
   try {
     await model.deleteMany();
     console.log("Data successfully deleted!");

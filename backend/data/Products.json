@@ -51,7 +51,7 @@
     "price": 59.99,
     "image": "img-6",
     "onSale": true,
-    "categoryId": "d914aec0-25b2-4103-9ed8-225d39018d1d"
+    "categoryId": "d914aec025b241039ed8225d39018d1d"
   },
   {
     "name": "Golf Clubs",
@@ -60,7 +60,7 @@
     "price": 427.44,
     "image": "img-7",
     "onSale": false,
-    "categoryId": "d914aec0-25b2-4103-9ed8-225d39018d1d"
+    "categoryId": "d914aec025b241039ed8225d39018d1d"
   },
   {
     "name": "Baseball Gloves",
@@ -69,7 +69,7 @@
     "price": 77.0,
     "image": "img-8",
     "onSale": true,
-    "categoryId": "d914aec0-25b2-4103-9ed8-225d39018d1d"
+    "categoryId": "d914aec025b241039ed8225d39018d1d"
   },
   {
     "name": "Soccer Ball",
@@ -78,6 +78,6 @@
     "price": 93.44,
     "image": "img-9",
     "onSale": false,
-    "categoryId": "d914aec0-25b2-4103-9ed8-225d39018d1d"
+    "categoryId": "d914aec025b241039ed8225d39018d1d"
   }
 ]

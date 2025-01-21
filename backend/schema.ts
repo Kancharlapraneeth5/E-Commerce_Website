@@ -1,24 +1,34 @@
-const { gql } = require("apollo-server");
-exports.typeDefs = gql`
+import { gql } from "apollo-server";
+
+export const typeDefs = gql`
   type Query {
     products(filter: ProductFilterInput): [Product!]!
-    product(id: ID!): Product
-    productByName(name: String!): Product
+    product(productId: ID!): Product
+    productByName(productName: String!): Product
     categories: [Category!]!
-    category(id: ID!): Category
-    categoryByName(name: String!): Category
+    category(categoryId: ID!): Category
+    categoryByName(categoryName: String!): Category
+    reviews: [Review!]!
+    reviewsByProductId(productId: ID!): [Review!]!
+    review(reviewId: ID!): Review
+    productsByReviewRating(
+      minRating: Int!
+      maxRating: Int!
+      categoryId: ID!
+    ): [Product]
+    productsByCategory(categoryId: ID!): [Product]
   }
 
   type Mutation {
     addNewCategory(input: AddCategoryInput!): Category!
     addNewProduct(input: AddProductInput!): Product!
-    addNewProducts(input: [AddProductInput!]!): [Product!]!
+    addNewProducts(input: AddProductsInput!): [Product!]!
     addNewReview(input: AddReviewInput!): Review!
     addNewUser(input: AddUserInput!): User!
-    deleteCategory(id: ID!): Boolean!
-    deleteProduct(id: ID!): Boolean!
-    deleteReview(id: ID!): Boolean!
-    updateCategory(id: ID!, input: UpdateCategoryInput!): Category
+    deleteCategory(categoryID: ID!): Boolean!
+    deleteProduct(productID: ID!): Boolean!
+    deleteReview(reviewID: ID!): Boolean!
+    updateCategory(categoryID: ID!, input: UpdateCategoryInput!): Category
   }
   type Product {
     id: ID!
@@ -44,7 +54,7 @@ exports.typeDefs = gql`
     title: String!
     comment: String!
     rating: Int!
-    productID: ID!
+    productId: String!
   }
 
   type User {
@@ -76,12 +86,16 @@ exports.typeDefs = gql`
     categoryId: String!
   }
 
+  input AddProductsInput {
+    products: [AddProductInput!]!
+  }
+
   input AddReviewInput {
     date: String!
     title: String!
     comment: String!
     rating: Int!
-    productID: String!
+    productId: String!
   }
 
   input AddUserInput {
