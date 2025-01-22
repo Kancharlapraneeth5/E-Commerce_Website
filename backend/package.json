@@ -5,10 +5,7 @@
   "main": "server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.ts",
-    "backend": "npm run start",
-    "frontend": "cd.. && cd frontend && npm run start",
-    "fullstack": "concurrently \"npm run backend\" \"npm run frontend\""
+    "start": "nodemon server.ts"
   },
   "keywords": [],
   "author": "",

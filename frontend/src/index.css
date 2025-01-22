@@ -1,0 +1,493 @@
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap");
+
+/* base styles */
+* {
+  margin: 0;
+  font-family: "Quicksand";
+  color: #333;
+}
+.navbar {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
+  border-bottom: 1px solid #f2f2f2;
+}
+.navbar h1 {
+  color: #f1356d;
+}
+.navbar .links {
+  margin-left: auto;
+}
+.navbar a {
+  margin-left: 16px;
+  text-decoration: none;
+  padding: 6px;
+}
+.navbar a:hover {
+  color: #f1356d;
+}
+
+/* Remove the empty ruleset */
+
+.login,
+.create {
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: center;
+}
+.login label,
+.create label {
+  text-align: left;
+  display: block;
+}
+.login h2,
+.create h2 {
+  font-size: 20px;
+  color: #f1356d;
+  margin-bottom: 30px;
+}
+.login input,
+.create input,
+.login textarea,
+.create textarea,
+.login select,
+.create select {
+  width: 100%;
+  padding: 6px 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  display: block;
+}
+.login button,
+.create button {
+  background: #f1356d;
+  color: #fff;
+  border: 0;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.Categories-header {
+  display: flex;
+  justify-content: center; /* Center the content horizontally */
+  align-items: center; /* Vertically center the content */
+  width: 100%; /* Full width of the page */
+  padding: 10px 20px; /* Padding for spacing */
+  box-sizing: border-box; /* Ensures padding is included in width calculation */
+}
+
+.Categories-header h1 {
+  margin: 0; /* Remove any default margin */
+  color: palevioletred;
+  padding-right: 10px; /* Reduced padding to bring h1 closer to button */
+  padding-left: 200px;
+  flex-grow: 1; /* Makes the h1 take up available space */
+  text-align: center; /* Centers the h1 text */
+  font-size: 50px; /* Increase the font size */
+}
+
+.Categories-header button {
+  background-color: #f1356d;
+  color: white;
+  border: none;
+  padding: 8px 8px; /* Optional: button border style */
+  margin-left: 10px; /* Space between h1 and button */
+  white-space: nowrap; /* Prevents wrapping of text */
+  overflow: hidden; /* Ensures no overflow of text */
+  text-overflow: ellipsis; /* Adds "..." if the text overflows */
+  max-width: 200px; /* Button maximum width */
+  box-sizing: border-box; /* Includes padding in width calculation */
+}
+
+.category {
+  padding: 10px 16px; /* Maintain the padding around content */
+  margin: 20px 0; /* Adjust the vertical spacing */
+  border-bottom: 1px solid #fafafa;
+  width: 100%; /* Make the category span the full width of its parent container */
+  text-align: center; /* Align text to the left */
+}
+.category:hover {
+  box-shadow: 1px 3px 5px rgba(0, 0, 0, 0.1);
+}
+.category h2 {
+  font-size: 35px;
+  color: #f1356d;
+  margin-bottom: 20px;
+}
+
+/* Add a container if needed for overall page alignment */
+.Categories-container {
+  max-width: 1200px; /* Or any desired width */
+  margin: 0 auto; /* Center-align the content */
+  padding-left: 20px; /* Add padding for some space from the left */
+  padding-top: 30px; /* Add padding for some space from the top */
+}
+
+/* Add Category Header styling */
+.add-category h2,
+.add-product h2 {
+  text-align: center; /* Center the header */
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.add-category,
+.add-product {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+  align-items: center; /* Horizontally center the items */
+  height: 100vh; /* Take full viewport height */
+}
+
+/* Heading styling */
+.add-category h2,
+.add-product h2 {
+  color: palevioletred;
+  font-size: 24px;
+  margin-top: 30px; /* Space from the top of the page */
+  margin-bottom: 20px; /* Space between the heading and the container */
+  text-align: center; /* Ensure the heading is centered */
+  font-size: 30px;
+}
+
+/* Category container (form) styling */
+.category-container,
+.product-container {
+  background-color: #fff;
+  padding: 30px; /* Reduced padding for better alignment */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px; /* Set a max width for the form */
+  margin-top: 50px; /* Add space between the heading and the form */
+}
+
+/* Label styling */
+.category-container label,
+.product-container label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 16px;
+  margin-right: 100px;
+  margin-left: 75px;
+  font-size: 20px;
+}
+
+/* Input field styling */
+.category-container input,
+.product-container input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+/* Button styling */
+.category-container button,
+.product-container button {
+  width: 75%;
+  padding: 12px;
+  margin-top: 20px;
+  background-color: #f1356d;
+  color: white;
+  font-size: 16px;
+  border: solid;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.category-container button:hover {
+  background-color: #e02d5d;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Responsive styling for smaller screens */
+@media (max-width: 600px) {
+  .category-container {
+    width: 90%; /* Use 90% of screen width on smaller screens */
+    max-width: none; /* Remove the max width restriction */
+    padding: 15px;
+  }
+}
+
+.Category-Products button {
+  background-color: #f1356d;
+  color: white;
+  border: none;
+  padding: 8px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.Category-Delete button {
+  background-color: #f1356d;
+  color: white;
+  border: none;
+  padding: 8px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.Products-header {
+  display: flex;
+  justify-content: center; /* Center the content horizontally */
+  align-items: center; /* Vertically center the content */
+  width: 100%; /* Full width of the page */
+  padding: 10px 20px; /* Padding for spacing */
+  box-sizing: border-box; /* Ensures padding is included in width calculation */
+}
+
+.Products-header h1 {
+  margin: 0; /* Remove any default margin */
+  color: palevioletred;
+  padding-right: 10px; /* Reduced padding to bring h1 closer to button */
+  padding-left: 200px;
+  flex-grow: 1; /* Makes the h1 take up available space */
+  text-align: center; /* Centers the h1 text */
+  font-size: 50px; /* Increase the font size */
+}
+
+.Categories-button {
+  background-color: #f1356d;
+  color: white;
+  border: none;
+  padding: 8px 8px;
+  position: absolute; /* Positioning it absolutely on the page */
+  margin-left: 10px; /* Space between h1 and button */
+  left: 0; /* Aligns the button to the left edge */
+  top: 20px; /* Adjust top positioning as needed */
+}
+
+.Filter-button,
+.AddProduct-button {
+  background-color: #f1356d;
+  color: white;
+  border: none;
+  padding: 8px 8px; /* Optional: button border style */
+  margin-left: 10px; /* Space between h1 and button */
+  white-space: nowrap; /* Prevents wrapping of text */
+  overflow: hidden; /* Ensures no overflow of text */
+  text-overflow: ellipsis; /* Adds "..." if the text overflows */
+  max-width: 200px; /* Button maximum width */
+  box-sizing: border-box; /* Includes padding in width calculation */
+}
+
+.Product {
+  padding: 10px 16px; /* Maintain the padding around content */
+  margin: 20px 0; /* Adjust the vertical spacing */
+  border-bottom: 1px solid #fafafa;
+  width: 100%; /* Make the category span the full width of its parent container */
+  text-align: center; /* Align text to the left */
+}
+.Product:hover {
+  box-shadow: 1px 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+.Product h1 {
+  margin: 0; /* Remove any default margin */
+  color: palevioletred;
+  padding-right: 10px; /* Reduced padding to bring h1 closer to button */
+  padding-left: 20px;
+  padding-bottom: 20px;
+  flex-grow: 1; /* Makes the h1 take up available space */
+  text-align: center; /* Centers the h1 text */
+  font-size: 35px; /* Increase the font size */
+}
+
+.Product h2 {
+  font-size: 35px;
+  color: #f1356d;
+  margin-bottom: 20px;
+}
+
+.Products-container {
+  max-width: 1200px; /* Or any desired width */
+  margin: 0 auto; /* Center-align the content */
+  padding-top: 30px; /* Add padding for some space from the top */
+}
+
+.Product-Reviews button {
+  margin-top: 20px;
+}
+
+.Product-Delete button {
+  margin-top: 20px;
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Transparent black background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Style for the popup content */
+.popup-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  overflow-y: auto;
+  height: 500px;
+  width: 500px;
+  text-align: center;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative; /* To position the close button */
+}
+
+/* Close button style */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.Reviews-Container {
+  max-width: 1200px; /* Or any desired width */
+  margin: 0 auto; /* Center-align the content */
+  padding-top: 30px; /* Add padding for some space from the top */
+  padding-right: 30px;
+  text-align: center;
+}
+
+.Review {
+  padding: 10px 16px; /* Maintain the padding around content */
+  margin: 20px 0; /* Adjust the vertical spacing */
+  border-bottom: 1px solid #fafafa;
+  width: 100%; /* Make the category span the full width of its parent container */
+  text-align: center; /* Align text to the left */
+}
+.Review:hover {
+  box-shadow: 1px 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+.Reviews-Container h3 {
+  color: #f1356d;
+  margin-bottom: 20px;
+}
+
+.AddReview button {
+  font-size: 15px;
+  margin-top: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+/* Filter Container */
+.Filter {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Title */
+.Filter h1 {
+  font-size: 24px;
+  color: #f1356d;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Filter Options Section */
+.Filter-Options {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* On Sale Section */
+.onSale,
+.Rating {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.onSale label,
+.Rating label {
+  font-size: 16px;
+  color: #555;
+  margin-left: 5px;
+  display: inline-block; /* Ensures the label is beside the radio button */
+}
+
+.onSale input,
+.Rating input {
+  margin-right: 10px;
+}
+
+/* Displaying radio button and label inline */
+.onSale label,
+.Rating label {
+  display: inline-flex;
+  align-items: center;
+  font-weight: bold;
+  gap: 5px;
+}
+
+input[type="radio"] {
+  margin-right: 5px;
+}
+
+/* Submit Button */
+.Submit-Filter button {
+  background-color: #f1356d;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-left: 20px;
+}
+
+.Submit-Filter button:hover {
+  background-color: #0056b3;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 400px) {
+  .Filter {
+    width: 100%;
+    padding: 15px;
+  }
+
+  .Filter-Options {
+    gap: 10px;
+  }
+
+  .Submit-Filter button {
+    width: 100%;
+  }
+}
