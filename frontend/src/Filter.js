@@ -73,9 +73,24 @@ const Filter = () => {
     const savedProducts = localStorage.getItem("products");
     console.log("The saved products are", savedProducts);
     setSavedProducts(JSON.parse(savedProducts));
-    const savedPathName = localStorage.getItem("pathName");
-    console.log("The saved path name is", savedPathName);
-    setSavedPathName(savedPathName);
+    const SavedPathName = localStorage.getItem("pathName");
+    console.log("The saved path name is", SavedPathName);
+    setSavedPathName(SavedPathName);
+
+    if (SavedPathName === location.pathname) {
+      console.log("I am in the same path name");
+    } else {
+      console.log("I am in the different path name");
+      setSelectedOnSaleRadio(null);
+      setSelectedRatingRadio(null);
+      setFilters({
+        onSale: null,
+        MinRating: null,
+        MaxRating: null,
+      });
+      setSavedFilters(null);
+      setSavedProducts([]);
+    }
   }, []);
 
   useEffect(() => {
@@ -85,6 +100,7 @@ const Filter = () => {
       console.log("The saved path name is", savedPathName);
 
       setFilteredProducts(savedProducts);
+      setSavedProducts(savedProducts);
 
       console.log("I am setting the onSale radio");
       setSelectedOnSaleRadio(SavedFilters.onSale);
@@ -93,7 +109,7 @@ const Filter = () => {
       setSelectedRatingRadio(
         `${SavedFilters.MinRating}-${SavedFilters.MaxRating}`
       );
-      setPathName(savedPathName);
+      setSavedPathName(savedPathName);
     }
   }, [SavedFilters, savedProducts, savedPathName]);
 
@@ -113,7 +129,15 @@ const Filter = () => {
         });
       }
     }
-  }, [SavedFilters, savedProducts, clickedSubmitButton, filters, categoryId]);
+  }, [
+    SavedFilters,
+    savedProducts,
+    savedPathName,
+    clickedSubmitButton,
+    filters,
+    categoryId,
+    history,
+  ]);
 
   useEffect(() => {
     if (
@@ -125,7 +149,7 @@ const Filter = () => {
       console.log("the savedFilters are", SavedFilters);
       localStorage.setItem("filters", JSON.stringify(SavedFilters));
       localStorage.setItem("products", JSON.stringify(savedProducts));
-      localStorage.setItem("pathName", location.pathname);
+      localStorage.setItem("pathName", savedPathName);
     } else {
       console.log("Setting the filters.......");
       console.log("the filtered products are", filteredProducts);
@@ -138,24 +162,9 @@ const Filter = () => {
     filters,
     SavedFilters,
     savedProducts,
+    savedPathName,
     filteredProducts,
   ]);
-
-  useEffect(() => {
-    // When pathname changes, clear the selected filters
-    if (pathName !== location.pathname) {
-      setSelectedOnSaleRadio(null);
-      setSelectedRatingRadio(null);
-      setFilters({
-        onSale: null,
-        MinRating: null,
-        MaxRating: null,
-      });
-      setSavedFilters(null);
-      setSavedProducts([]);
-      setPathName(location.pathname);
-    }
-  }, [location.pathname, pathName]);
 
   const handleOnSaleRadioSelection = (e) => {
     const value = e.target.value;
@@ -299,14 +308,6 @@ const Filter = () => {
           "Please select at least one filter option before submitting"
         )
       ) {
-      } else {
-        setFilters({
-          onSale: null,
-          MinRating: null,
-          MaxRating: null,
-        });
-        setSavedFilters(null);
-        setSavedProducts([]);
       }
     } else {
       // Extract rating values if the rating is not null
@@ -325,6 +326,8 @@ const Filter = () => {
         MinRating: minRating,
         MaxRating: maxRating,
       });
+
+      setPathName(location.pathname);
     }
 
     // Update filters state based on the selected filters
