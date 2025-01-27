@@ -129,14 +129,16 @@
 
 /* Add Category Header styling */
 .add-category h2,
-.add-product h2 {
+.add-product h2,
+.add-review h2 {
   text-align: center; /* Center the header */
   color: #333;
   margin-bottom: 20px;
 }
 
 .add-category,
-.add-product {
+.add-product,
+.add-review {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
@@ -149,7 +151,8 @@
 
 /* Heading styling */
 .add-category h2,
-.add-product h2 {
+.add-product h2,
+.add-review h2 {
   color: palevioletred;
   font-size: 24px;
   margin-top: 30px; /* Space from the top of the page */
@@ -160,7 +163,8 @@
 
 /* Category container (form) styling */
 .category-container,
-.product-container {
+.product-container,
+.review-container {
   background-color: #fff;
   padding: 30px; /* Reduced padding for better alignment */
   border-radius: 8px;
@@ -172,7 +176,8 @@
 
 /* Label styling */
 .category-container label,
-.product-container label {
+.product-container label,
+.review-container label {
   font-weight: bold;
   display: block;
   margin-bottom: 16px;
@@ -183,7 +188,8 @@
 
 /* Input field styling */
 .category-container input,
-.product-container input {
+.product-container input,
+.review-container input {
   width: 100%;
   padding: 10px;
   margin-bottom: 20px;
@@ -194,7 +200,8 @@
 
 /* Button styling */
 .category-container button,
-.product-container button {
+.product-container button,
+.review-container button {
   width: 75%;
   padding: 12px;
   margin-top: 20px;
@@ -206,7 +213,9 @@
   cursor: pointer;
 }
 
-.category-container button:hover {
+.category-container button:hover,
+.product-container button:hover,
+.review-container button:hover {
   background-color: #e02d5d;
 }
 
