@@ -8,6 +8,8 @@ import AddCategory from "./AddCategory";
 import Products from "./Products";
 import Filter from "./Filter";
 import AddProduct from "./AddProduct";
+import Thankyou from "./Thankyou";
+import AddReview from "./AddReview";
 
 function App() {
   const location = useLocation();
@@ -53,6 +55,12 @@ function App() {
           </Route>
           <Route exact path="/Products/:categoryId/AddProduct">
             <AddProduct />
+          </Route>
+          <Route exact path="/Products/:categoryId/AddReview/:productID">
+            <AddReview />
+          </Route>
+          <Route exact path="/FeedBackDone">
+            <Thankyou />
           </Route>
         </Switch>
       </div>

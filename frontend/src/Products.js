@@ -108,7 +108,7 @@ const Products = () => {
       });
   };
 
-  const handleGetReviews = (productId) => {
+  const handleGetReviews = (productID) => {
     fetch("http://localhost:5000/graphql", {
       method: "POST",
       headers: {
@@ -126,7 +126,7 @@ const Products = () => {
                     }
          }`,
         variables: {
-          productId: productId,
+          productId: productID,
         },
         operationName: "ReviewsByProductId",
       }),
@@ -211,7 +211,15 @@ const Products = () => {
                             ))}
                         </div>
                         <div className="AddReview">
-                          <button>AddReview</button>
+                          <button
+                            onClick={() => {
+                              history.push(
+                                `/Products/${categoryId}/AddReview/${product.id}`
+                              );
+                            }}
+                          >
+                            AddReview
+                          </button>
                         </div>
                       </div>
                     )}
