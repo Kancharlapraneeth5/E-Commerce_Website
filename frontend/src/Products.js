@@ -175,9 +175,6 @@ const Products = () => {
       <div className="Products-container">
         {products.map((product) => (
           <div className="Product" key={product.id}>
-            {console.log(
-              "Product at the begining of the container" + product.id
-            )}
             <h1>{product.name}</h1>
             <h3>{"Product description - " + product.description}</h3>
             <h3>{"Available quantity -  " + product.quantity}</h3>
