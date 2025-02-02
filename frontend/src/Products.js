@@ -7,6 +7,7 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [showReviewPopup, setReviewPopup] = useState(false);
+  const [productID, setProductID] = useState(null);
   const history = useHistory();
   const { categoryId } = useParams();
 
@@ -174,8 +175,10 @@ const Products = () => {
       <div className="Products-container">
         {products.map((product) => (
           <div className="Product" key={product.id}>
+            {console.log(
+              "Product at the begining of the container" + product.id
+            )}
             <h1>{product.name}</h1>
-
             <h3>{"Product description - " + product.description}</h3>
             <h3>{"Available quantity -  " + product.quantity}</h3>
             <h3>{"Price -  " + product.price}</h3>
@@ -183,6 +186,7 @@ const Products = () => {
             <div className="Product-Reviews">
               <button
                 onClick={() => {
+                  setProductID(product.id);
                   handleGetReviews(product.id);
                   togglePopup();
                 }}
@@ -190,7 +194,7 @@ const Products = () => {
                 Reviews
               </button>
               {showReviewPopup && (
-                <div className="popup">
+                <div className="popup" key={productID}>
                   <div className="popup-content" ref={popupRef}>
                     <span className="close-btn" onClick={togglePopup}>
                       ×
@@ -198,7 +202,7 @@ const Products = () => {
                     {/*Get the reviews for the specific producs*/}
                     <h2>{"Customer reviews"}</h2>
 
-                    {product.id && (
+                    {productID && (
                       <div>
                         {/* Call the handleGetReviews function when the popup is shown */}
                         <div className="Reviews-Container">
@@ -214,7 +218,7 @@ const Products = () => {
                           <button
                             onClick={() => {
                               history.push(
-                                `/Products/${categoryId}/AddReview/${product.id}`
+                                `/Products/${categoryId}/AddReview/${productID}`
                               );
                             }}
                           >
