@@ -7,6 +7,7 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [showReviewPopup, setReviewPopup] = useState(false);
+  const [productID, setProductID] = useState(null);
   const history = useHistory();
   const { categoryId } = useParams();
 
@@ -146,6 +147,45 @@ const Products = () => {
       });
   };
 
+  const handleProductDelete = (productID) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this product?"
+    );
+    if (confirmDelete) {
+      fetch("http://localhost:5000/graphql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+        body: JSON.stringify({
+          query: `mutation DeleteProduct($productId: ID!) {
+                      deleteProduct(productID: $productId)
+                  }`,
+          variables: {
+            productId: productID,
+          },
+          operationName: "DeleteProduct",
+        }),
+      })
+        .then((res) => {
+          if (!res.ok) {
+            console.error("Error:", res.statusText);
+            if (res.status === 401) {
+              history.push("/Login");
+            }
+          }
+          return res.json();
+        })
+        .then((data) => {
+          console.log("the server response data is" + JSON.stringify(data));
+          handleGetProducts(categoryId);
+        });
+    } else {
+      console.log("Delete operation cancelled");
+    }
+  };
+
   return (
     <div className="Products-Page">
       <div className="Products-header">
@@ -175,7 +215,6 @@ const Products = () => {
         {products.map((product) => (
           <div className="Product" key={product.id}>
             <h1>{product.name}</h1>
-
             <h3>{"Product description - " + product.description}</h3>
             <h3>{"Available quantity -  " + product.quantity}</h3>
             <h3>{"Price -  " + product.price}</h3>
@@ -183,6 +222,7 @@ const Products = () => {
             <div className="Product-Reviews">
               <button
                 onClick={() => {
+                  setProductID(product.id);
                   handleGetReviews(product.id);
                   togglePopup();
                 }}
@@ -190,7 +230,7 @@ const Products = () => {
                 Reviews
               </button>
               {showReviewPopup && (
-                <div className="popup">
+                <div className="popup" key={productID}>
                   <div className="popup-content" ref={popupRef}>
                     <span className="close-btn" onClick={togglePopup}>
                       ×
@@ -198,7 +238,7 @@ const Products = () => {
                     {/*Get the reviews for the specific producs*/}
                     <h2>{"Customer reviews"}</h2>
 
-                    {product.id && (
+                    {productID && (
                       <div>
                         {/* Call the handleGetReviews function when the popup is shown */}
                         <div className="Reviews-Container">
@@ -214,7 +254,7 @@ const Products = () => {
                           <button
                             onClick={() => {
                               history.push(
-                                `/Products/${categoryId}/AddReview/${product.id}`
+                                `/Products/${categoryId}/AddReview/${productID}`
                               );
                             }}
                           >
@@ -227,8 +267,14 @@ const Products = () => {
                 </div>
               )}
             </div>
-            <div className="Product-Delete">
-              <button>Delete</button>
+            <div className="Product-Delete" key={productID}>
+              <button
+                onClick={() => {
+                  handleProductDelete(product.id);
+                }}
+              >
+                Delete
+              </button>
             </div>
           </div>
         ))}
