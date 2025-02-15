@@ -147,6 +147,45 @@ const Products = () => {
       });
   };
 
+  const handleProductDelete = (productID) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this product?"
+    );
+    if (confirmDelete) {
+      fetch("http://localhost:5000/graphql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+        body: JSON.stringify({
+          query: `mutation DeleteProduct($productId: ID!) {
+                      deleteProduct(productID: $productId)
+                  }`,
+          variables: {
+            productId: productID,
+          },
+          operationName: "DeleteProduct",
+        }),
+      })
+        .then((res) => {
+          if (!res.ok) {
+            console.error("Error:", res.statusText);
+            if (res.status === 401) {
+              history.push("/Login");
+            }
+          }
+          return res.json();
+        })
+        .then((data) => {
+          console.log("the server response data is" + JSON.stringify(data));
+          handleGetProducts(categoryId);
+        });
+    } else {
+      console.log("Delete operation cancelled");
+    }
+  };
+
   return (
     <div className="Products-Page">
       <div className="Products-header">
@@ -228,8 +267,14 @@ const Products = () => {
                 </div>
               )}
             </div>
-            <div className="Product-Delete">
-              <button>Delete</button>
+            <div className="Product-Delete" key={productID}>
+              <button
+                onClick={() => {
+                  handleProductDelete(product.id);
+                }}
+              >
+                Delete
+              </button>
             </div>
           </div>
         ))}
