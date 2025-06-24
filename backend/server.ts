@@ -25,7 +25,12 @@ const app = express();
 
 app.use(express.json());
 
-app.use(cors());
+const corsOptions = {
+  origin: "http://localhost:3000",
+  credentials: true, // if you need to allow cookies or auth headers
+};
+
+app.use(cors(corsOptions));
 
 app.post("/auth", async (req: Request, res: Response) => {
   const { username, password } = req.body;
