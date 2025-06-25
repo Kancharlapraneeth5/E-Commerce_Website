@@ -11,20 +11,26 @@ exports.typeDefs = (0, apollo_server_1.gql) `
     category(categoryId: ID!): Category
     categoryByName(categoryName: String!): Category
     reviews: [Review!]!
+    reviewsByProductId(productId: ID!): [Review!]!
     review(reviewId: ID!): Review
-    productsByReviewRating(rating: Int!): [Product]
+    productsByReviewRating(
+      minRating: Int!
+      maxRating: Int!
+      categoryId: ID!
+    ): [Product]
+    productsByCategory(categoryId: ID!): [Product]
   }
 
   type Mutation {
     addNewCategory(input: AddCategoryInput!): Category!
     addNewProduct(input: AddProductInput!): Product!
-    addNewProducts(input: [AddProductInput!]!): [Product!]!
+    addNewProducts(input: AddProductsInput!): [Product!]!
     addNewReview(input: AddReviewInput!): Review!
     addNewUser(input: AddUserInput!): User!
-    deleteCategory(id: ID!): Boolean!
-    deleteProduct(id: ID!): Boolean!
-    deleteReview(id: ID!): Boolean!
-    updateCategory(id: ID!, input: UpdateCategoryInput!): Category
+    deleteCategory(categoryID: ID!): Boolean!
+    deleteProduct(productID: ID!): Boolean!
+    deleteReview(reviewID: ID!): Boolean!
+    updateCategory(categoryID: ID!, input: UpdateCategoryInput!): Category
   }
   type Product {
     id: ID!
@@ -50,7 +56,7 @@ exports.typeDefs = (0, apollo_server_1.gql) `
     title: String!
     comment: String!
     rating: Int!
-    productId: String
+    productId: String!
   }
 
   type User {
@@ -62,10 +68,6 @@ exports.typeDefs = (0, apollo_server_1.gql) `
 
   input ProductFilterInput {
     onSale: Boolean
-  }
-
-  input ReviewFilterInput {
-    rating: Int
   }
 
   input AddCategoryInput {
@@ -86,12 +88,16 @@ exports.typeDefs = (0, apollo_server_1.gql) `
     categoryId: String!
   }
 
+  input AddProductsInput {
+    products: [AddProductInput!]!
+  }
+
   input AddReviewInput {
     date: String!
     title: String!
     comment: String!
     rating: Int!
-    productId: String!
+    productId: ID!
   }
 
   input AddUserInput {

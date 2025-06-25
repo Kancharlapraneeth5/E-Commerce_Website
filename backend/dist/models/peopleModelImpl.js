@@ -28,6 +28,7 @@ const peopleSchema = new mongoose_1.Schema({
     username: {
         type: String,
         required: [true, "username is required"],
+        unique: true,
     },
     password: {
         type: String,

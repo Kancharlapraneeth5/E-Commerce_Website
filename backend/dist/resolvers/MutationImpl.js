@@ -16,6 +16,7 @@ exports.Mutation = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const apollo_server_errors_1 = require("apollo-server-errors");
 const uuid_1 = require("uuid");
+const mongoose_1 = __importDefault(require("mongoose"));
 exports.Mutation = {
     addNewCategory: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { input }, context) {
         if (context.user.role === "admin") {
@@ -77,7 +78,9 @@ exports.Mutation = {
             });
         }
     }),
+    // (try altair to test this mutation)
     addNewProducts: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { input }, context) {
+        console.log("the input is.." + JSON.stringify(input.products));
         if (context.user.role === "admin") {
             const newProducts = input.products.map((productinput) => {
                 const { name, image, price, onSale, quantity, categoryId, description, } = productinput;
@@ -104,14 +107,14 @@ exports.Mutation = {
     }),
     addNewReview: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { input }, context) {
         if (context.user.role === "admin") {
-            const { date, title, comment, rating, productID } = input;
+            const { date, title, comment, rating, productId } = input;
             const newReview = {
                 id: (0, uuid_1.v4)(),
                 date,
                 title,
                 comment,
                 rating,
-                productID,
+                productId,
             };
             try {
                 yield context.ReviewModel.create(newReview);
@@ -133,45 +136,46 @@ exports.Mutation = {
             });
         }
     }),
+    // the below mutation is for adding a new user to the database
+    // like a signup operation so don't need to check the role
     addNewUser: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { input }, context) {
-        if (context.user.role === "admin") {
-            const { username, password, role } = input;
-            const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
-            const newUser = {
-                id: (0, uuid_1.v4)(),
-                username,
-                password: hashedPassword,
-                role,
-            };
-            try {
+        const { username, password, role } = input;
+        console.log("the input is.." + JSON.stringify(input));
+        const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
+        const newUser = {
+            id: (0, uuid_1.v4)(),
+            username,
+            password: hashedPassword,
+            role,
+        };
+        const existingUser = yield context.PeopleModel.findOne({ username });
+        console.log("existing user is.." + JSON.stringify(existingUser));
+        try {
+            if (existingUser) {
+                console.log("Username must be unique");
+                throw new apollo_server_errors_1.ApolloError("Username must be unique", "Conflict", {
+                    statusCode: 409,
+                });
+            }
+            else {
                 yield context.PeopleModel.create(newUser);
                 return newUser;
             }
-            catch (err) {
-                if (err.errmsg.includes("duplicate key error") &&
-                    err.code === 11000) {
-                    throw new apollo_server_errors_1.ApolloError("Username must be unique", "Conflict", {
-                        statusCode: 409,
-                    });
-                }
-                throw err;
-            }
         }
-        else {
-            throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", {
-                statusCode: 403,
-            });
+        catch (err) {
+            throw err;
         }
     }),
-    deleteCategory: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { id }, context) {
+    deleteCategory: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { categoryID }, context) {
         if (context.user.role === "admin") {
             try {
                 let query = {
-                    categoryId: id,
-                    $set: { categoryId: null },
+                    // converting the string to ObjectId
+                    categoryId: new mongoose_1.default.Types.ObjectId(categoryID),
                 };
-                yield context.CategoryModel.findByIdAndDelete(id);
-                yield context.ProductModel.updateMany(query);
+                let updateOperation = { $set: { categoryId: null } };
+                yield context.CategoryModel.findByIdAndDelete(query.categoryId);
+                yield context.ProductModel.updateMany(query, updateOperation);
                 return true;
             }
             catch (err) {
@@ -186,11 +190,13 @@ exports.Mutation = {
             });
         }
     }),
-    deleteProduct: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { id }, context) {
+    deleteProduct: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { productID }, context) {
         if (context.user.role === "admin") {
             try {
-                let query = { productId: id };
-                yield context.ProductModel.findByIdAndDelete(id);
+                let query = {
+                    productId: new mongoose_1.default.Types.ObjectId(productID),
+                };
+                yield context.ProductModel.findByIdAndDelete(query.productId);
                 yield context.ReviewModel.deleteMany(query);
                 return true;
             }
@@ -206,10 +212,10 @@ exports.Mutation = {
             });
         }
     }),
-    deleteReview: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { id }, context) {
+    deleteReview: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { reviewID }, context) {
         if (context.user.role === "admin") {
             try {
-                yield context.ReviewModel.findByIdAndDelete(id);
+                yield context.ReviewModel.findByIdAndDelete(reviewID);
                 return true;
             }
             catch (err) {
@@ -224,10 +230,12 @@ exports.Mutation = {
             });
         }
     }),
-    updateCategory: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { id, input }, context) {
+    updateCategory: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { categoryID, input }, context) {
         if (context.user.role === "admin") {
             try {
-                const updatedCategory = yield context.CategoryModel.findByIdAndUpdate(id, input, {
+                const updatedCategory = yield context.CategoryModel.findByIdAndUpdate(categoryID, input, {
+                    // By default, MongoDB's findByIdAndUpdate operation returns the original document before it was updated.
+                    // If you set new: true, it will return the updated document.
                     new: true,
                 });
                 return updatedCategory;
