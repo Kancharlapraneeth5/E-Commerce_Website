@@ -21,6 +21,7 @@ const Register = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           query: `
             mutation AddNewUser($username: String!, $password: String!, $role: String!) {

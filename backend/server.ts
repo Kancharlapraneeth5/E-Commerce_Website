@@ -23,14 +23,22 @@ const { sign, verify } = jwt;
 // Create an instance of Express
 const app = express();
 
-app.use(express.json());
-
-const corsOptions = {
+// CORS middleware FIRST, with specific origin and credentials
+app.use(cors({
   origin: "http://localhost:3000",
-  credentials: true, // if you need to allow cookies or auth headers
-};
+  credentials: true,
+}));
 
-app.use(cors(corsOptions));
+// Handle preflight requests for all routes
+app.options("*", cors({
+  origin: "http://localhost:3000",
+  credentials: true,
+}));
+// Load env variables
+config({ path: "./config.env" });
+
+// Use JSON body parser
+app.use(express.json());
 
 app.post("/auth", async (req: Request, res: Response) => {
   const { username, password } = req.body;
@@ -180,7 +188,7 @@ const server = new ApolloServer({
 
 server.start().then(() => {
   console.log("Apollo server started...");
-  server.applyMiddleware({ app });
+  server.applyMiddleware({ app, cors: false });
   const port = process.env.PORT || 2000;
   // starting the server
   app.listen(port, () => {

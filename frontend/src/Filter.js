@@ -201,6 +201,7 @@ const Filter = () => {
         "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
+      credentials: "include",
       body: JSON.stringify({
         query: `
               query Category($categoryId: ID!, $onSale: Boolean!) {
@@ -246,6 +247,7 @@ const Filter = () => {
         "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
+      credentials: "include",
       body: JSON.stringify({
         query: `
               query ProductsByReviewRating($categoryId: ID!, $minRating: Int!, $maxRating: Int!) {
