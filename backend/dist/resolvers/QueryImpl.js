@@ -26,7 +26,7 @@ exports.Query = {
     // It includes the field name, path to the field from the root, and more. It's mostly used in advanced cases,
     // like schema stitching
     // THE ORDER OF THE PARAMETERS IN THE RESOLVER FUNCTION IS VERY IMPORTANT!!!!!!
-    // WORKING AS EXPECTED...
+    // THE ORDER IS parent, args, context, info
     products: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { filter }, context) {
         let filterProducts;
         try {
@@ -50,7 +50,6 @@ exports.Query = {
             });
         }
     }),
-    // WORKING AS EXPECTED...
     product: (parent, args, context) => __awaiter(void 0, void 0, void 0, function* () {
         const { productId } = args;
         try {
@@ -63,7 +62,6 @@ exports.Query = {
             });
         }
     }),
-    // WORKING AS EXPECTED...
     productByName: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { productName }, context) {
         const ProductName = productName;
         let query = { name: ProductName };
@@ -77,7 +75,6 @@ exports.Query = {
             });
         }
     }),
-    // Working as expected...
     categories: (parent, args, context) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const result = yield context.CategoryModel.find();
@@ -89,7 +86,6 @@ exports.Query = {
             });
         }
     }),
-    // WORKING AS EXPECTED...
     category: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { categoryId }, context) {
         try {
             const result = yield context.CategoryModel.findById(categoryId);
@@ -101,7 +97,6 @@ exports.Query = {
             });
         }
     }),
-    // WORKING AS EXPECTED...
     categoryByName: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { categoryName }, context) {
         try {
             let query = { name: categoryName };
@@ -114,10 +109,23 @@ exports.Query = {
             });
         }
     }),
-    //
     reviews: (parent, args, context) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const result = yield context.ReviewModel.find();
+            console.log(result);
+            return result;
+        }
+        catch (err) {
+            throw new apollo_server_express_1.ApolloError("An error occurred while fetching the categories", "Internal Server Error", {
+                statusCode: 500,
+            });
+        }
+    }),
+    reviewsByProductId: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { productId }, context) {
+        try {
+            const result = yield context.ReviewModel.find({
+                productId: productId,
+            });
             console.log(result);
             return result;
         }
@@ -140,13 +148,29 @@ exports.Query = {
             });
         }
     }),
-    // working as expected...
-    productsByReviewRating: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { rating }, context) {
+    productsByReviewRating: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { minRating, maxRating, categoryId }, context) {
         try {
-            const reviews = yield context.ReviewModel.find({ rating: rating });
-            const productIDs = reviews.map((review) => review.get("productID"));
+            const reviews = yield context.ReviewModel.find({
+                rating: { $gte: minRating, $lte: maxRating },
+            });
+            console.log("reviews data", reviews);
+            const productIDs = reviews.map((review) => review.get("productId"));
+            console.log("productIDs data", productIDs);
             const products = yield context.ProductModel.find({
                 _id: { $in: productIDs },
+                categoryId: categoryId,
+            });
+            console.log("products data", products);
+            return products;
+        }
+        catch (err) {
+            throw new apollo_server_express_1.ApolloError("An error occurred while fetching the products", "Internal Server Error", { statusCode: 500 });
+        }
+    }),
+    productsByCategory: (parent_1, _a, context_1) => __awaiter(void 0, [parent_1, _a, context_1], void 0, function* (parent, { categoryId }, context) {
+        try {
+            const products = yield context.ProductModel.find({
+                categoryId: categoryId,
             });
             return products;
         }

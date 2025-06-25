@@ -16,6 +16,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // Importing the required modules
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
+const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = require("dotenv");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -34,6 +35,19 @@ const mongoose_2 = require("mongoose");
 const { sign, verify } = jsonwebtoken_1.default;
 // Create an instance of Express
 const app = (0, express_1.default)();
+// CORS middleware FIRST, with specific origin and credentials
+app.use((0, cors_1.default)({
+    origin: "http://localhost:3000",
+    credentials: true,
+}));
+// Handle preflight requests for all routes
+app.options("*", (0, cors_1.default)({
+    origin: "http://localhost:3000",
+    credentials: true,
+}));
+// Load env variables
+(0, dotenv_1.config)({ path: "./config.env" });
+// Use JSON body parser
 app.use(express_1.default.json());
 app.post("/auth", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, password } = req.body;
@@ -58,8 +72,17 @@ app.post("/auth", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 // MIDDLE WARE to verify the user token.
 app.use((req, res, next) => {
     var _a;
+    const operationName = req.body.operationName;
+    // List of public operations that do not require authentication
+    const publicOperations = ["AddNewUser"];
+    if (publicOperations.includes(operationName)) {
+        // Skip authentication for public operations
+        console.log("I am in correct block!!");
+        return next();
+    }
     const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
     if (!token) {
+        console.log("I am in wrong block!!");
         return res.status(401).json({ error: "No token provided" });
     }
     jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET, (err, decoded) => {
@@ -96,6 +119,20 @@ const server = new apollo_server_express_1.ApolloServer({
     },
     introspection: true,
     context: (_a) => __awaiter(void 0, [_a], void 0, function* ({ req }) {
+        const operationName = req.body.operationName;
+        // List of public operations that do not require authentication
+        const publicOperations = ["AddNewUser"];
+        console.log("operationName", operationName);
+        if (publicOperations.includes(operationName)) {
+            // Skip authentication for public operations
+            return {
+                ProductModel: productModelImpl_1.default,
+                CategoryModel: categoryModelImpl_1.default,
+                ReviewModel: reviewModelImpl_1.default,
+                PeopleModel: peopleModelImpl_1.default,
+                user: null,
+            };
+        }
         const token = req.headers.authorization;
         let user = null;
         if (!token) {
@@ -131,7 +168,7 @@ const server = new apollo_server_express_1.ApolloServer({
 });
 server.start().then(() => {
     console.log("Apollo server started...");
-    server.applyMiddleware({ app });
+    server.applyMiddleware({ app, cors: false });
     const port = process.env.PORT || 2000;
     // starting the server
     app.listen(port, () => {
@@ -148,3 +185,6 @@ process.on("unhandledRejection", (err) => {
         });
     });
 });
+function next() {
+    throw new Error("Function not implemented.");
+}
