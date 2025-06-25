@@ -36,6 +36,7 @@ const AddProduct = () => {
         "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
+      credentials: "include",
       body: JSON.stringify({
         query: `
             mutation AddNewProduct($name: String!, $description: String!, $quantity: Int!, $price: Float!, $image: String!, $onSale: Boolean!, $categoryId: String!) {

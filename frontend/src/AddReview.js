@@ -25,6 +25,7 @@ const AddReview = () => {
         "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
+      credentials: "include",
       body: JSON.stringify({
         query: `
           mutation AddNewReview($title: String!, $comment: String!, $rating: Int!, $date: String!, $productId: ID!) {

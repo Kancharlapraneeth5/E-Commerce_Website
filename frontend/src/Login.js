@@ -19,6 +19,7 @@ const Login = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ username, password }),
       })
         .then((res) => {
@@ -34,6 +35,9 @@ const Login = () => {
             history.push("/Categories");
           }
           console.log("Form submitted successfully");
+        })
+        .catch((error) => {
+          console.error("Error during login:", error);
         });
     }
   };
