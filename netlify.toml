@@ -1,0 +1,21 @@
+[build]
+  # Directory to change to before starting a build
+  base = "frontend/"
+  
+  # Directory that contains the deploy-ready HTML files and assets
+  publish = "build/"
+  
+  # Default build command
+  command = "npm run build"
+
+[build.environment]
+  # Node version for build
+  NODE_VERSION = "18"
+  # Disable treating warnings as errors in CI
+  CI = "false"
+
+# Redirect rules for single-page applications
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
