@@ -23,15 +23,39 @@ const { sign, verify } = jwt;
 // Create an instance of Express
 const app = express();
 
-// CORS middleware FIRST, with specific origin and credentials
+// Get allowed origins from environment or use defaults for local and production
+const allowedOrigins = [
+  "http://localhost:3000",                // Local development
+  "https://your-netlify-app.netlify.app", // Replace with your actual Netlify domain
+  process.env.FRONTEND_URL               // Optional environment variable for flexibility
+].filter(Boolean); // Filter out undefined/null values
+
+// CORS middleware FIRST, with configurable origins and credentials
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 
 // Handle preflight requests for all routes
 app.options("*", cors({
-  origin: "http://localhost:3000",
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 // Load env variables
@@ -188,11 +212,26 @@ const server = new ApolloServer({
 
 server.start().then(() => {
   console.log("Apollo server started...");
-  server.applyMiddleware({ app, cors: false });
+  // Apply middleware with CORS disabled (using Express CORS middleware instead)
+  server.applyMiddleware({ 
+    app, 
+    cors: false,
+    // Log Apollo server path
+    path: '/graphql'
+  });
+  
   const port = process.env.PORT || 2000;
+  const nodeEnv = process.env.NODE_ENV || 'development';
+  
   // starting the server
   app.listen(port, () => {
-    console.log(`App running at port: ${port}...`);
+    console.log(`App running in ${nodeEnv} mode at port: ${port}...`);
+    console.log(`GraphQL endpoint: http://localhost:${port}${server.graphqlPath}`);
+    const allowedOrigins = [
+      "http://localhost:3000",
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
+    console.log(`Allowed CORS origins: ${allowedOrigins.join(', ')}`);
   });
 });
 
