@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
+import { API_ENDPOINTS } from "./config/api";
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -15,7 +16,7 @@ const Categories = () => {
     );
     if (confirmDelete) {
       console.log("Delete category with id: ", id);
-      fetch("http://localhost:5000/graphql", {
+      fetch(API_ENDPOINTS.GRAPHQL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -52,7 +53,7 @@ const Categories = () => {
   };
 
   const fetchCategories = () => {
-    fetch("http://localhost:5000/graphql", {
+    fetch(API_ENDPOINTS.GRAPHQL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

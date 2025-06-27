@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
+import { API_ENDPOINTS } from "./config/api";
 
 const AddCategory = () => {
   const [categoryName, setCategoryName] = useState(""); // Create a state variable to store the category name
@@ -7,7 +8,7 @@ const AddCategory = () => {
 
   const handleAddCategory = (e) => {
     e.preventDefault();
-    fetch("http://localhost:5000/graphql", {
+    fetch(API_ENDPOINTS.GRAPHQL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

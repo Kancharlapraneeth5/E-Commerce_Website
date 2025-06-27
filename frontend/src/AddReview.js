@@ -1,5 +1,6 @@
 import { useHistory, useParams } from "react-router-dom";
 import { useState } from "react";
+import { API_ENDPOINTS } from "./config/api";
 
 const AddReview = () => {
   const [Title, setTitle] = useState("");
@@ -19,7 +20,7 @@ const AddReview = () => {
 
   const handleAddReview = (e) => {
     e.preventDefault();
-    fetch("http://localhost:5000/graphql", {
+    fetch(API_ENDPOINTS.GRAPHQL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

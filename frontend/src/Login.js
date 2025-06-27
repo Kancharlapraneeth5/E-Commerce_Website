@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
+import { API_ENDPOINTS } from "./config/api";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -14,7 +15,7 @@ const Login = () => {
       setErrorMessages("Please fill all the fields");
     } else {
       setErrorMessages("");
-      fetch("http://localhost:5000/auth", {
+      fetch(API_ENDPOINTS.AUTH, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
