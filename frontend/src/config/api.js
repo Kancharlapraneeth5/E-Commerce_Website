@@ -1,26 +1,34 @@
 // API configuration for different environments
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-export const API_ENDPOINTS = {
-  GRAPHQL: `${API_BASE_URL}/graphql`,
-  AUTH: `${API_BASE_URL}/auth`,
-};
-
-// Helper function for making API calls
-export const apiCall = async (endpoint, options = {}) => {
-  try {
-    const response = await fetch(endpoint, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    });
-    return response;
-  } catch (error) {
-    console.error('API call failed:', error);
-    throw error;
+const config = {
+  development: {
+    API_BASE_URL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000',
+    API_URL: process.env.REACT_APP_API_URL || 'http://localhost:5000/graphql',
+    ENVIRONMENT: 'development'
+  },
+  production: {
+    API_BASE_URL: process.env.REACT_APP_API_BASE_URL || 'https://e-commerce-website-us30.onrender.com',
+    API_URL: process.env.REACT_APP_API_URL || 'https://e-commerce-website-us30.onrender.com/graphql',
+    ENVIRONMENT: 'production'
   }
 };
 
-export default API_BASE_URL;
+// Determine current environment
+const currentEnv = process.env.NODE_ENV || 'development';
+const currentConfig = config[currentEnv];
+
+// Export current configuration
+export const API_CONFIG = {
+  ...currentConfig,
+  IS_DEVELOPMENT: currentEnv === 'development',
+  IS_PRODUCTION: currentEnv === 'production'
+};
+
+export const API_ENDPOINTS = {
+  GRAPHQL: currentConfig.API_URL,
+  AUTH: `${currentConfig.API_BASE_URL}/auth`,
+};
+
+console.log(`🚀 Frontend running in ${currentEnv} mode`);
+console.log(`📡 API URL: ${currentConfig.API_URL}`);
+
+export default API_CONFIG;
