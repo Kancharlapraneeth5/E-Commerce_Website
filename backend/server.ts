@@ -25,9 +25,9 @@ const app = express();
 
 // Get allowed origins from environment or use defaults for local and production
 const allowedOrigins = [
-  "http://localhost:3000",                // Local development
-  "https://your-netlify-app.netlify.app", // Replace with your actual Netlify domain
-  process.env.FRONTEND_URL               // Optional environment variable for flexibility
+  "http://localhost:3000", // Local development
+  "https://praneeth-ecommerce.netlify.app/", // Replace with your actual Netlify domain
+  process.env.FRONTEND_URL, // Optional environment variable for flexibility
 ].filter(Boolean); // Filter out undefined/null values
 
 // CORS middleware FIRST, with configurable origins and credentials
