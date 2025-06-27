@@ -7,6 +7,9 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+backend/.env.development
+# Keep production env for deployment if needed
+# backend/.env.production
 
 # Keep production env for Netlify
 !frontend/.env.production
