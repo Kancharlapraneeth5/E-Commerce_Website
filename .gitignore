@@ -11,6 +11,11 @@ backend/.env.development
 # Keep production env for deployment if needed
 # backend/.env.production
 
+# Frontend environment files
+frontend/.env.development
+# Keep production env for Netlify if needed
+# frontend/.env.production
+
 # Keep production env for Netlify
 !frontend/.env.production
 

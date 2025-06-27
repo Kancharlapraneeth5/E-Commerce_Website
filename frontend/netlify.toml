@@ -1,0 +1,28 @@
+[build]
+  # Directory to change to before starting a build
+  base = "frontend/"
+  
+  # Directory that contains the deploy-ready HTML files and assets
+  publish = "build/"
+  
+  # Production build command (matches package.json)
+  command = "npm run build:prod"
+
+[build.environment]
+  # Node version for build
+  NODE_VERSION = "18"
+  # Disable treating warnings as errors in CI
+  CI = "false"
+  # Environment variables for production build
+  NODE_ENV = "production"
+  REACT_APP_NODE_ENV = "production"
+  REACT_APP_ENVIRONMENT = "production"
+  # Production API URL (update with your actual Render backend URL)
+  REACT_APP_API_URL = "https://e-commerce-website-us30.onrender.com/graphql"
+  REACT_APP_API_BASE_URL = "https://e-commerce-website-us30.onrender.com"
+
+# Redirect rules for single-page applications
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

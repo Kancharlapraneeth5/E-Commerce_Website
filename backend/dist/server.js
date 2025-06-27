@@ -32,21 +32,49 @@ const categoryModelImpl_1 = __importDefault(require("./models/categoryModelImpl"
 const reviewModelImpl_1 = __importDefault(require("./models/reviewModelImpl"));
 const peopleModelImpl_1 = __importDefault(require("./models/peopleModelImpl"));
 const mongoose_2 = require("mongoose");
+// Load environment variables based on NODE_ENV
+const environment = process.env.NODE_ENV || 'development';
+(0, dotenv_1.config)({ path: `.env.${environment}` });
 const { sign, verify } = jsonwebtoken_1.default;
 // Create an instance of Express
 const app = (0, express_1.default)();
-// CORS middleware FIRST, with specific origin and credentials
+// Get allowed origins from environment or use defaults for local and production
+const allowedOrigins = [
+    "http://localhost:3000", // Local development
+    process.env.FRONTEND_URL, // Optional environment variable for flexibility
+].filter(Boolean); // Filter out undefined/null values
+// CORS middleware FIRST, with configurable origins and credentials
 app.use((0, cors_1.default)({
-    origin: "http://localhost:3000",
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin)
+            return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1 ||
+            process.env.NODE_ENV !== "production") {
+            callback(null, true);
+        }
+        else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     credentials: true,
 }));
 // Handle preflight requests for all routes
 app.options("*", (0, cors_1.default)({
-    origin: "http://localhost:3000",
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin)
+            return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1 ||
+            process.env.NODE_ENV !== "production") {
+            callback(null, true);
+        }
+        else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     credentials: true,
 }));
-// Load env variables
-(0, dotenv_1.config)({ path: "./config.env" });
 // Use JSON body parser
 app.use(express_1.default.json());
 app.post("/auth", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -168,11 +196,21 @@ const server = new apollo_server_express_1.ApolloServer({
 });
 server.start().then(() => {
     console.log("Apollo server started...");
-    server.applyMiddleware({ app, cors: false });
-    const port = process.env.PORT || 2000;
+    // Apply middleware with CORS disabled (using Express CORS middleware instead)
+    server.applyMiddleware({
+        app,
+        cors: false,
+        // Log Apollo server path
+        path: "/graphql",
+    });
+    const port = Number(process.env.PORT) || 5000; // Render provides PORT, fallback to 5000
+    const nodeEnv = process.env.NODE_ENV || "development";
+    const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
     // starting the server
-    app.listen(port, () => {
-        console.log(`App running at port: ${port}...`);
+    app.listen(port, host, () => {
+        console.log(`🚀 App running in ${nodeEnv} mode at ${host}:${port}...`);
+        console.log(`📡 GraphQL endpoint: http://${host}:${port}${server.graphqlPath}`);
+        console.log(`🌐 Allowed CORS origins: ${allowedOrigins.join(", ")}`);
     });
 });
 //Handle unhandled promise rejections

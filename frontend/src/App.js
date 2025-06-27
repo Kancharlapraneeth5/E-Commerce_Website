@@ -10,6 +10,7 @@ import Filter from "./Filter";
 import AddProduct from "./AddProduct";
 import Thankyou from "./Thankyou";
 import AddReview from "./AddReview";
+import EnvironmentBadge from "./EnvironmentBadge";
 
 function App() {
   const location = useLocation();
@@ -18,6 +19,7 @@ function App() {
     // (we have added the Router component in the index.js file)
 
     <div className="App">
+      <EnvironmentBadge />
       {location.pathname === "/Login" ||
         location.pathname === "/Register" ||
         (location.pathname === "/" && <Navbar />)}
