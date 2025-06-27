@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { API_ENDPOINTS } from "./config/api";
 
 const Filter = () => {
   const [filters, setFilters] = useState({
@@ -195,7 +196,7 @@ const Filter = () => {
   };
 
   const handleGetOnSaleFilterProducts = () => {
-    fetch("http://localhost:5000/graphql", {
+    fetch(API_ENDPOINTS.GRAPHQL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -241,7 +242,7 @@ const Filter = () => {
   };
 
   const handleGetReviewRatingFilterProducts = () => {
-    fetch("http://localhost:5000/graphql", {
+    fetch(API_ENDPOINTS.GRAPHQL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
+import { API_ENDPOINTS } from "./config/api";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -16,7 +17,7 @@ const Register = () => {
       setErrorMessages("Passwords do not match");
     } else {
       setErrorMessages("");
-      fetch("http://localhost:5000/graphql", {
+      fetch(API_ENDPOINTS.GRAPHQL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

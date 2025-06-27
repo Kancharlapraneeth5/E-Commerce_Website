@@ -13,6 +13,8 @@
   NODE_VERSION = "18"
   # Disable treating warnings as errors in CI
   CI = "false"
+  # Production API URL
+  REACT_APP_API_URL = "https://e-commerce-website-us30.onrender.com"
 
 # Redirect rules for single-page applications
 [[redirects]]

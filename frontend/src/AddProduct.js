@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
+import { API_ENDPOINTS } from "./config/api";
 
 const AddProduct = () => {
   const [productName, setProductName] = useState(""); // Create a state variable to store the category name
@@ -30,7 +31,7 @@ const AddProduct = () => {
   const handleAddProduct = (e) => {
     e.preventDefault();
     console.log("the event is", e);
-    fetch("http://localhost:5000/graphql", {
+    fetch(API_ENDPOINTS.GRAPHQL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

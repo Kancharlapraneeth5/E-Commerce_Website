@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { API_ENDPOINTS } from "./config/api";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -66,7 +67,7 @@ const Products = () => {
 
   const handleGetProducts = (categoryId) => {
     console.log("Get products for category with id: ", categoryId);
-    fetch("http://localhost:5000/graphql", {
+    fetch(API_ENDPOINTS.GRAPHQL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -111,7 +112,7 @@ const Products = () => {
   };
 
   const handleGetReviews = (productID) => {
-    fetch("http://localhost:5000/graphql", {
+    fetch(API_ENDPOINTS.GRAPHQL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -153,7 +154,7 @@ const Products = () => {
       "Are you sure you want to delete this product?"
     );
     if (confirmDelete) {
-      fetch("http://localhost:5000/graphql", {
+      fetch(API_ENDPOINTS.GRAPHQL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

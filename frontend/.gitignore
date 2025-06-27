@@ -18,6 +18,9 @@
 .env.test.local
 .env.production.local
 
+# Keep .env.production for deployment
+!.env.production
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
