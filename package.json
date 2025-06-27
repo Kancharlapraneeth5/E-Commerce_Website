@@ -2,9 +2,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.ts",
-    "backend": "cd backend && npm run start",
+    "backend:dev": "cd backend && npm run start:dev",
+    "backend:prod": "cd backend && npm run start:prod",
     "frontend": "cd frontend && npm run start",
-    "fullstack": "concurrently \"npm run backend\" \"npm run frontend\""
+    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend\"",
+    "fullstack": "concurrently \"npm run backend:prod\" \"npm run frontend\""
   },
   "dependencies": {
     "concurrently": "^9.1.2"
