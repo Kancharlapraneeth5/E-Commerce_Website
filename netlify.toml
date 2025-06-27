@@ -15,6 +15,8 @@
   CI = "false"
   # Production API URL
   REACT_APP_API_URL = "https://e-commerce-website-us30.onrender.com"
+  # Your Netlify URL for CORS configuration
+  FRONTEND_URL = "https://your-netlify-app.netlify.app"
 
 # Redirect rules for single-page applications
 [[redirects]]
