@@ -58,6 +58,7 @@ app.options(
   "*",
   cors({
     origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
       if (
@@ -72,8 +73,6 @@ app.options(
     credentials: true,
   })
 );
-// Load env variables
-config({ path: "./config.env" });
 
 // Use JSON body parser
 app.use(express.json());
@@ -234,16 +233,17 @@ server.start().then(() => {
     path: "/graphql",
   });
 
-  const port = process.env.PORT || 2000;
+  const port = Number(process.env.PORT) || 5000; // Render provides PORT, fallback to 5000
   const nodeEnv = process.env.NODE_ENV || "development";
+  const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
 
   // starting the server
-  app.listen(port, () => {
-    console.log(`App running in ${nodeEnv} mode at port: ${port}...`);
+  app.listen(port, host, () => {
+    console.log(`🚀 App running in ${nodeEnv} mode at ${host}:${port}...`);
     console.log(
-      `GraphQL endpoint: http://localhost:${port}${server.graphqlPath}`
+      `📡 GraphQL endpoint: http://${host}:${port}${server.graphqlPath}`
     );
-    console.log(`Allowed CORS origins: ${allowedOrigins.join(", ")}`);
+    console.log(`🌐 Allowed CORS origins: ${allowedOrigins.join(", ")}`);
   });
 });
 

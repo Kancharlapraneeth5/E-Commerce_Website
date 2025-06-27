@@ -1,0 +1,36 @@
+# Render.com deployment configuration
+# This file configures your service deployment on Render
+
+services:
+  - type: web
+    name: e-commerce-backend
+    runtime: node
+    plan: free # or starter/standard for paid plans
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE
+        sync: false # Set manually in Render dashboard for security
+      - key: JWT_SECRET
+        sync: false # Set manually in Render dashboard for security
+      - key: USER
+        value: praneeth
+      - key: PASSWORD
+        value: "123456"
+      - key: FRONTEND_URL
+        value: https://praneeth-ecommerce.netlify.app
+    healthCheckPath: /graphql
+    autoDeploy: true
+# Environment Variables to set manually in Render Dashboard for security:
+# DATABASE=mongodb+srv://kancharlapraneeth:qEFD3nq8A4CRgRW7@cluster0.avxtc9p.mongodb.net/GraphQL-Project?retryWrites=true&w=majority
+# JWT_SECRET=mysecret-0-mychoice/mychoice-0-mysecret-prod
+
+# Notes:
+# - postinstall script automatically runs 'npm run build' after npm install
+# - Render automatically provides PORT environment variable
+# - Health check endpoint should respond with 200 status
+# - Auto-deploy triggers on Git pushes to main branch
+# - TypeScript compilation happens during build phase
+# - Free plan has limitations on build minutes and bandwidth
