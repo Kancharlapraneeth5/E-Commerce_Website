@@ -1,0 +1,62 @@
+pipeline {
+  agent any
+
+  tools {
+    nodejs 'NodeJS'
+  }
+
+  environment {
+    NETLIFY_AUTH_TOKEN = credentials('netlify-token-id')
+    RENDER_API_KEY     = credentials('render-api-key-id')
+  }
+
+  stages {
+    stage('Install Dependencies') {
+      steps {
+        dir('frontend') {
+          bat 'npm install'
+        }
+        dir('backend') {
+          bat 'npm install'
+        }
+      }
+    }
+
+    stage('Build Frontend') {
+      steps {
+        dir('frontend') {
+          bat 'npm run build'
+        }
+      }
+    }
+
+    stage('Deploy to Netlify') {
+      steps {
+        dir('frontend') {
+          bat 'npm install -g netlify-cli'
+          bat "netlify deploy --dir=build --prod --auth=%NETLIFY_AUTH_TOKEN% --site=728977a9-22cb-46e1-94cb-62df52198df9"
+        }
+      }
+    }
+
+    stage('Trigger Render Deployment') {
+      steps {
+        script {
+          def curlCommand = """
+            curl -X POST https://api.render.com/v1/services/srv-d1cjhn95pdvs73eud780/deploys ^
+            -H "Accept: application/json" ^
+            -H "Authorization: Bearer ${env.RENDER_API_KEY}"
+          """
+          bat curlCommand
+        }
+      }
+    }
+
+    stage('Done') {
+      steps {
+        echo '✅ Frontend deployed to Netlify'
+        echo '✅ Backend deployment triggered on Render'
+      }
+    }
+  }
+}
