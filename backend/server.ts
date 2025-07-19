@@ -77,6 +77,7 @@ app.options(
 // Use JSON body parser
 app.use(express.json());
 
+// REST endpoint to get the auth token.
 app.post("/auth", async (req: Request, res: Response) => {
   const { username, password } = req.body;
   const user = await PeopleModel.findOne({ username });
