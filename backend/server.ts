@@ -112,14 +112,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   if (publicOperations.includes(operationName)) {
     // Skip authentication for public operations
-    console.log("I am in correct block!!");
     return next();
   }
 
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
-    console.log("I am in wrong block!!");
     return res.status(401).json({ error: "No token provided" });
   }
 
