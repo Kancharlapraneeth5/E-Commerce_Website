@@ -1,4 +1,4 @@
-import { Document, Model } from "mongoose";
+import mongoose, { Document, Model } from "mongoose";
 import { Types } from "mongoose";
 
 export interface CategoryInput {
@@ -33,6 +33,14 @@ export interface UserInput {
   role: string;
 }
 
+export interface CartInput {
+  userId: mongoose.Types.ObjectId;
+  items: Array<{
+    productId: mongoose.Types.ObjectId;
+    quantity: number;
+  }>;
+}
+
 export interface deleteCategoryQuery {
   categoryId: Types.ObjectId;
 }
@@ -50,11 +58,18 @@ export interface updateCategoryInput {
 }
 
 export interface Context {
-  user: { role: string };
+  user: {
+    _id: string;
+    username: string;
+    password: string;
+    role: string;
+    __v: number;
+  };
   CategoryModel: Model<Document>;
   ProductModel: Model<Document>;
   ReviewModel: Model<Document>;
   PeopleModel: Model<Document>;
+  CartModel: Model<Document>;
 }
 
 export interface MyError {
