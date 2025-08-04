@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import { ApolloError } from "apollo-server-errors";
 import { v4 as uuid } from "uuid";
 import mongoose from "mongoose";
+import { ICart } from "../models/cartModel";
+import { IProduct } from "../models/productModel";
 import {
   CategoryInput,
   ProductInput,
@@ -13,6 +15,7 @@ import {
   Context,
   deleteProductQuery,
   deleteReviewQuery,
+  CartInput,
   MyError,
 } from "./Mutation";
 
@@ -321,5 +324,90 @@ export const Mutation = {
         statusCode: 403,
       });
     }
+  },
+
+  // addToCart(userId, productId, quantity)
+  addToCart: async (
+    parent: any,
+    { input }: { input: CartInput },
+    context: Context
+  ) => {
+    const { userId, items } = input;
+
+    // Check if the user exists
+    const user = await context.PeopleModel.findById(userId);
+
+    // If the user token does not match the userId in the cart, throw an error (Forbiddeb)
+    if (context.user._id.toString() !== userId.toString()) {
+      throw new ApolloError("Permission Denied!", "Forbidden", {
+        statusCode: 403,
+      });
+    }
+
+    // If the user does not exist, throw an error
+    if (!user) {
+      throw new ApolloError("User not found", "Not Found", {
+        statusCode: 404,
+      });
+    }
+
+    // Check if the cart already exists for the user
+    let cart = (await context.CartModel.findOne({ userId })) as ICart | null;
+
+    // If the cart does not exist, create a new one
+    if (!cart) {
+      // Create a new cart if it doesn't exist
+      const cartItem = {
+        id: uuid(),
+        userId,
+        items,
+      };
+      // If not, create a new cart
+      await new context.CartModel(cartItem).save();
+      return cartItem;
+    } else {
+      // If it exists, update the items
+      for (const item of items) {
+        const existingItem = cart.items.find(
+          (i) => i.productId === item.productId
+        );
+        if (existingItem) {
+          // Check the available quantity in the product model
+          const product = (await context.ProductModel.findById(
+            item.productId
+          )) as IProduct | null;
+          // If the product does not exist, throw an error
+          if (!product) {
+            throw new ApolloError("Product not found", "Not Found", {
+              statusCode: 404,
+            });
+          } else {
+            // If the product exists, check if the requested quantity is available
+            if (item.quantity > product.quantity) {
+              throw new ApolloError(
+                "Requested quantity exceeds available stock",
+                "Bad Request",
+                {
+                  statusCode: 400,
+                }
+              );
+            }
+          }
+          // If the item already exists in the cart, update the quantity
+          existingItem.quantity += item.quantity;
+          // Decrement the product quantity
+          product.quantity -= item.quantity;
+          // Save the updated product
+          await product.save();
+          // Ensure the quantity is also updated in the product model for the respective product
+        } else {
+          // If the item does not exist, add it to the cart
+          cart.items.push(item);
+        }
+      }
+      await cart.save();
+    }
+    // Save the cart
+    return cart;
   },
 };

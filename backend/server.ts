@@ -16,10 +16,11 @@ import ProductModel from "./models/productModelImpl";
 import CategoryModel from "./models/categoryModelImpl";
 import ReviewModel from "./models/reviewModelImpl";
 import PeopleModel from "./models/peopleModelImpl";
+import CartModel from "./models/cartModelImp";
 import { connection } from "mongoose";
 
 // Load environment variables based on NODE_ENV
-const environment = process.env.NODE_ENV || 'development';
+const environment = process.env.NODE_ENV || "development";
 config({ path: `.env.${environment}` });
 
 const { sign, verify } = jwt;
@@ -148,10 +149,14 @@ const DB = process.env.DATABASE?.replace(
 
 mongoose
   .connect(DB || "", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  } as mongoose.ConnectOptions) // Add the 'as mongoose.ConnectOptions' type assertion
-  .then((con) => console.log("DB connection successful !"));
+    // You can add connection options here if needed
+  } as mongoose.ConnectOptions)
+  .then(() => {
+    console.log("✅ DB connection successful!");
+  })
+  .catch((err) => {
+    console.error("❌ DB connection failed:", err.message);
+  });
 
 // Create an instance of ApolloServer
 const server = new ApolloServer({
@@ -178,6 +183,7 @@ const server = new ApolloServer({
         CategoryModel,
         ReviewModel,
         PeopleModel,
+        CartModel,
         user: null,
       };
     }
@@ -216,6 +222,7 @@ const server = new ApolloServer({
       CategoryModel,
       ReviewModel,
       PeopleModel,
+      CartModel,
       user,
     };
   },
@@ -255,6 +262,3 @@ process.on("unhandledRejection", (err: Error) => {
     });
   });
 });
-function next(): object | PromiseLike<object> {
-  throw new Error("Function not implemented.");
-}

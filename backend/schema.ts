@@ -29,6 +29,7 @@ export const typeDefs = gql`
     deleteProduct(productID: ID!): Boolean!
     deleteReview(reviewID: ID!): Boolean!
     updateCategory(categoryID: ID!, input: UpdateCategoryInput!): Category
+    addToCart(input: AddToCartInput!): Cart!
   }
   type Product {
     id: ID!
@@ -62,6 +63,17 @@ export const typeDefs = gql`
     username: String!
     password: String!
     role: String!
+  }
+
+  type Cart {
+    id: ID!
+    userId: String!
+    items: [CartItem!]!
+  }
+
+  type CartItem {
+    productId: String!
+    quantity: Int!
   }
 
   input ProductFilterInput {
@@ -102,5 +114,15 @@ export const typeDefs = gql`
     username: String!
     password: String!
     role: String!
+  }
+
+  input CartItemInput {
+    productId: String!
+    quantity: Int!
+  }
+
+  input AddToCartInput {
+    userId: String!
+    items: [CartItemInput!]!
   }
 `;
