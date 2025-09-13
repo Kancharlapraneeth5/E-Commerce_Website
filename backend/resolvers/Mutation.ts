@@ -46,6 +46,12 @@ export interface removeFromCartInput {
   productId: Types.ObjectId;
 }
 
+export interface updateCartInput {
+  userId: Types.ObjectId;
+  productId: Types.ObjectId;
+  quantity: number;
+}
+
 export interface deleteCategoryQuery {
   categoryId: Types.ObjectId;
 }

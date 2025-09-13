@@ -17,6 +17,7 @@ import {
   deleteReviewQuery,
   addToCartInput,
   removeFromCartInput,
+  updateCartInput,
   MyError,
 } from "./Mutation";
 
@@ -482,5 +483,111 @@ export const Mutation = {
     cart.items.splice(itemIndex, 1);
     await cart.save();
     return true;
+  },
+
+  // Update cart item quantity
+  updateCart: async (
+    _parent: any,
+    { input }: { input: updateCartInput },
+    context: Context
+  ) => {
+    const { userId, productId, quantity } = input;
+    // Input validation
+    if (!userId || !productId || quantity < 0) {
+      throw new ApolloError("Invalid input parameters", "Bad Request", {
+        statusCode: 400,
+      });
+    }
+
+    // Check permission - user can only update their own cart
+    if (context.user._id.toString() !== userId.toString()) {
+      throw new ApolloError("Permission Denied!", "Forbidden", {
+        statusCode: 403,
+      });
+    }
+
+    // Check if user exists
+    const user = await context.PeopleModel.findById(userId);
+    if (!user) {
+      throw new ApolloError("User not found", "Not Found", {
+        statusCode: 404,
+      });
+    }
+
+    // Check if product exists
+    const product = (await context.ProductModel.findById(
+      productId
+    )) as IProduct | null;
+    if (!product) {
+      throw new ApolloError("Product not found", "Not Found", {
+        statusCode: 404,
+      });
+    }
+
+    // Check if cart exists
+    let cart = (await context.CartModel.findOne({ userId })) as ICart | null;
+    if (!cart) {
+      throw new ApolloError("Cart not found", "Not Found", {
+        statusCode: 404,
+      });
+    }
+
+    // Find the item in the cart
+    const existingItemIndex = cart.items.findIndex(
+      (item) => item.productId.toString() === productId.toString()
+    );
+
+    if (existingItemIndex === -1) {
+      throw new ApolloError("Item not found in cart", "Not Found", {
+        statusCode: 404,
+      });
+    }
+
+    const existingItem = cart.items[existingItemIndex];
+    const currentQuantityInCart = existingItem.quantity;
+
+    // Handle quantity = 0 (remove item from cart)
+    if (quantity === 0) {
+      // Restore the quantity back to product inventory
+      product.quantity += currentQuantityInCart;
+      await product.save();
+
+      // Remove item from cart
+      cart.items.splice(existingItemIndex, 1);
+      await cart.save();
+
+      return cart;
+    }
+
+    // Calculate quantity difference
+    const quantityDifference = quantity - currentQuantityInCart;
+
+    // If increasing quantity, check if enough stock is available
+    if (quantityDifference > 0) {
+      if (quantityDifference > product.quantity) {
+        throw new ApolloError(
+          `Insufficient stock. Only ${product.quantity} items available to add.`,
+          "Bad Request",
+          {
+            statusCode: 400,
+          }
+        );
+      }
+      // Decrease product inventory
+      product.quantity -= quantityDifference;
+    }
+    // If decreasing quantity, restore stock to product inventory
+    else if (quantityDifference < 0) {
+      product.quantity += Math.abs(quantityDifference);
+    }
+
+    // Update the cart item quantity
+    existingItem.quantity = quantity;
+
+    // Save both product and cart
+    await product.save();
+    await cart.save();
+
+    return cart;
   },
 };

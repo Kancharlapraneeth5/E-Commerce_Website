@@ -1,5 +1,6 @@
 import { ApolloError } from "apollo-server-express";
 import { Args, Context, IQueryName } from "./Query";
+import { ICart } from "../models/cartModel";
 
 export const Query = {
   // In Apollo Server, each field in your schema has a corresponding resolver function.
@@ -233,6 +234,61 @@ export const Query = {
     } catch (err) {
       throw new ApolloError(
         "An error occurred while fetching the products",
+        "Internal Server Error",
+        { statusCode: 500 }
+      );
+    }
+  },
+
+  // Get cart for a specific user
+  getCart: async (
+    parent: any,
+    { userId }: Args,
+    context: Context
+  ): Promise<ICart | null> => {
+    try {
+      // Input validation
+      if (!userId) {
+        throw new ApolloError("User ID is required", "Bad Request", {
+          statusCode: 400,
+        });
+      }
+
+      // Check permission - user can only access their own cart
+      if (context.user._id.toString() !== userId.toString()) {
+        throw new ApolloError("Permission Denied!", "Forbidden", {
+          statusCode: 403,
+        });
+      }
+
+      // Check if user exists
+      const user = await context.PeopleModel.findById(userId);
+      if (!user) {
+        throw new ApolloError("User not found", "Not Found", {
+          statusCode: 404,
+        });
+      }
+
+      // Find the cart for the user
+      const cart = (await context.CartModel.findOne({
+        userId,
+      })) as ICart | null;
+
+      // If no cart exists, return null (or empty cart structure)
+      if (!cart) {
+        return null;
+      }
+
+      return cart;
+    } catch (err) {
+      // If it's already an ApolloError, re-throw it
+      if (err instanceof ApolloError) {
+        throw err;
+      }
+
+      // Handle any other errors
+      throw new ApolloError(
+        "An error occurred while fetching the cart",
         "Internal Server Error",
         { statusCode: 500 }
       );

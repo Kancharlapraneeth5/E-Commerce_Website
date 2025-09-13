@@ -17,6 +17,7 @@ export const typeDefs = gql`
       categoryId: ID!
     ): [Product]
     productsByCategory(categoryId: ID!): [Product]
+    getCart(userId: ID!): Cart
   }
 
   type Mutation {
@@ -31,6 +32,7 @@ export const typeDefs = gql`
     updateCategory(categoryID: ID!, input: UpdateCategoryInput!): Category
     addToCart(input: AddToCartInput!): Cart!
     removeFromCart(input: removeFromCartInput!): Boolean!
+    updateCart(input: updateCartInput!): Cart!
   }
   type Product {
     id: ID!
@@ -130,5 +132,11 @@ export const typeDefs = gql`
   input removeFromCartInput {
     userId: String!
     productId: String!
+  }
+
+  input updateCartInput {
+    userId: String!
+    productId: String!
+    quantity: Int!
   }
 `;
