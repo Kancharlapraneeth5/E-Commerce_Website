@@ -3,14 +3,16 @@ import { ICart } from "./cartModel";
 
 const cartSchema = new Schema<ICart>({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "People",
     required: [true, "User ID is required"],
+    // Ensure userId is unique, so one cart per user
+    unique: true,
   },
   items: [
     {
       productId: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Product",
         required: [true, "Product ID is required"],
       },

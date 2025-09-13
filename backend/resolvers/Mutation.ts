@@ -33,12 +33,17 @@ export interface UserInput {
   role: string;
 }
 
-export interface CartInput {
-  userId: mongoose.Types.ObjectId;
+export interface addToCartInput {
+  userId: Types.ObjectId;
   items: Array<{
-    productId: mongoose.Types.ObjectId;
+    productId: Types.ObjectId;
     quantity: number;
   }>;
+}
+
+export interface removeFromCartInput {
+  userId: Types.ObjectId;
+  productId: Types.ObjectId;
 }
 
 export interface deleteCategoryQuery {

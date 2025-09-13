@@ -30,6 +30,7 @@ export const typeDefs = gql`
     deleteReview(reviewID: ID!): Boolean!
     updateCategory(categoryID: ID!, input: UpdateCategoryInput!): Category
     addToCart(input: AddToCartInput!): Cart!
+    removeFromCart(input: removeFromCartInput!): Boolean!
   }
   type Product {
     id: ID!
@@ -124,5 +125,10 @@ export const typeDefs = gql`
   input AddToCartInput {
     userId: String!
     items: [CartItemInput!]!
+  }
+
+  input removeFromCartInput {
+    userId: String!
+    productId: String!
   }
 `;
