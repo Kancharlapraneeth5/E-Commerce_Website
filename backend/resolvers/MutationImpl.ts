@@ -15,7 +15,8 @@ import {
   Context,
   deleteProductQuery,
   deleteReviewQuery,
-  CartInput,
+  addToCartInput,
+  removeFromCartInput,
   MyError,
 } from "./Mutation";
 
@@ -328,86 +329,158 @@ export const Mutation = {
 
   // addToCart(userId, productId, quantity)
   addToCart: async (
-    parent: any,
-    { input }: { input: CartInput },
+    _parent: any,
+    { input }: { input: addToCartInput },
     context: Context
   ) => {
     const { userId, items } = input;
 
-    // Check if the user exists
-    const user = await context.PeopleModel.findById(userId);
-
-    // If the user token does not match the userId in the cart, throw an error (Forbiddeb)
+    // Check permission
     if (context.user._id.toString() !== userId.toString()) {
       throw new ApolloError("Permission Denied!", "Forbidden", {
         statusCode: 403,
       });
     }
 
-    // If the user does not exist, throw an error
+    // Check if user exists
+    const user = await context.PeopleModel.findById(userId);
     if (!user) {
       throw new ApolloError("User not found", "Not Found", {
         statusCode: 404,
       });
     }
 
-    // Check if the cart already exists for the user
+    // Utility: Validate and decrement product stock
+    const validateAndDecrementProduct = async (
+      productId: string,
+      quantity: number
+    ) => {
+      const product = (await context.ProductModel.findById(
+        productId
+      )) as IProduct | null;
+      if (!product) {
+        throw new ApolloError("Product not found", "Not Found", {
+          statusCode: 404,
+        });
+      }
+      if (quantity > product.quantity) {
+        throw new ApolloError(
+          "Requested quantity exceeds available stock",
+          "Bad Request",
+          {
+            statusCode: 400,
+          }
+        );
+      }
+      product.quantity -= quantity;
+      await product.save();
+    };
+
+    // Check if cart exists
     let cart = (await context.CartModel.findOne({ userId })) as ICart | null;
 
-    // If the cart does not exist, create a new one
+    // IF CART DOESN'T EXIST FOR THE USER, CREATE A NEW ONE
     if (!cart) {
-      // Create a new cart if it doesn't exist
-      const cartItem = {
+      // New cart case
+      // UPDATE THE QUANTITY IN THE PRODUCTS COLLECTION FOR EACH ITEM
+      for (const item of items) {
+        await validateAndDecrementProduct(
+          item.productId.toString(),
+          item.quantity
+        );
+      }
+
+      // CREATE A NEW CART OBJECT AND SAVE IT TO THE DATABASE
+      const newCart = new context.CartModel({
         id: uuid(),
         userId,
         items,
-      };
-      // If not, create a new cart
-      await new context.CartModel(cartItem).save();
-      return cartItem;
-    } else {
-      // If it exists, update the items
-      for (const item of items) {
-        const existingItem = cart.items.find(
-          (i) => i.productId === item.productId
-        );
-        if (existingItem) {
-          // Check the available quantity in the product model
-          const product = (await context.ProductModel.findById(
-            item.productId
-          )) as IProduct | null;
-          // If the product does not exist, throw an error
-          if (!product) {
-            throw new ApolloError("Product not found", "Not Found", {
-              statusCode: 404,
-            });
-          } else {
-            // If the product exists, check if the requested quantity is available
-            if (item.quantity > product.quantity) {
-              throw new ApolloError(
-                "Requested quantity exceeds available stock",
-                "Bad Request",
-                {
-                  statusCode: 400,
-                }
-              );
-            }
-          }
-          // If the item already exists in the cart, update the quantity
-          existingItem.quantity += item.quantity;
-          // Decrement the product quantity
-          product.quantity -= item.quantity;
-          // Save the updated product
-          await product.save();
-          // Ensure the quantity is also updated in the product model for the respective product
-        } else {
-          // If the item does not exist, add it to the cart
-          cart.items.push(item);
-        }
-      }
-      await cart.save();
+      });
+
+      await newCart.save();
+      return newCart;
     }
-    // Save the cart
+
+    // CART EXISTS, UPDATE IT
+    // Update existing cart case
+    // UPDATE THE QUANTITY IN THE PRODUCTS COLLECTION FOR EACH ITEM
+    for (const item of items) {
+      const existingItem = cart.items.find(
+        (i) => i.productId.toString() === item.productId.toString()
+      );
+
+      // UPDATE THE PRODUCT QUANTITY IN THE PRODUCTS COLLECTION
+      await validateAndDecrementProduct(
+        item.productId.toString(),
+        item.quantity
+      );
+
+      // IF ITEM ALREADY EXISTS IN CART, INCREMENT THE QUANTITY
+      if (existingItem) {
+        existingItem.quantity += item.quantity;
+      }
+      // ELSE, ADD THE NEW ITEM TO THE CART
+      else {
+        cart.items.push(item);
+      }
+    }
+
+    await cart.save();
     return cart;
+  },
+
+  // Remove item from cart
+  removeFromCart: async (
+    _parent: any,
+    { input }: { input: removeFromCartInput },
+    context: Context
+  ) => {
+    const { userId, productId } = input;
+
+    // Check permission
+    if (context.user._id.toString() !== userId.toString()) {
+      throw new ApolloError("Permission Denied!", "Forbidden", {
+        statusCode: 403,
+      });
+    }
+
+    // Check if user exists
+    const user = await context.PeopleModel.findById(userId);
+    if (!user) {
+      throw new ApolloError("User not found", "Not Found", {
+        statusCode: 404,
+      });
+    }
+
+    // Check if cart exists
+    const cart = (await context.CartModel.findOne({ userId })) as ICart | null;
+    if (!cart) {
+      throw new ApolloError("Cart not found", "Not Found", {
+        statusCode: 404,
+      });
+    }
+
+    // Find the item in the cart
+    const itemIndex = cart.items.findIndex(
+      (item) => item.productId.toString() === productId.toString()
+    );
+    if (itemIndex === -1) {
+      throw new ApolloError("Item not found in cart", "Not Found", {
+        statusCode: 404,
+      });
+    }
+
+    // Remove the item from the cart
+    // What is this splice method?
+    // array.splice(startIndex, deleteCount)
+    // This method deletes the items starting from startIndex and deletes deleteCount number of items
+
+    // EXAMPLE TO UNDERSTAND SPLICE:
+    // const arr = [10, 20, 30, 40, 50];
+    // arr.splice(1, 2);  // removes 2 elements: index 1 (20) and index 2 (30)
+    // console.log(arr);  // [10, 40, 50]
+    cart.items.splice(itemIndex, 1);
+    await cart.save();
+    return true;
   },
 };

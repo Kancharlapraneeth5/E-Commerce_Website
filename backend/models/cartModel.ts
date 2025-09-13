@@ -1,9 +1,9 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, { Document, Types } from "mongoose";
 
 export interface ICart extends Document {
-  userId: mongoose.Types.ObjectId;
+  userId: Types.ObjectId;
   items: Array<{
-    productId: mongoose.Types.ObjectId;
+    productId: Types.ObjectId;
     quantity: number;
   }>;
 }
