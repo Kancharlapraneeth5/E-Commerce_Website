@@ -336,10 +336,17 @@ export const Mutation = {
   ) => {
     const { userId, items } = input;
 
-    // Check permission
-    if (context.user._id.toString() !== userId.toString()) {
-      throw new ApolloError("Permission Denied!", "Forbidden", {
-        statusCode: 403,
+    if(!userId){
+      throw new ApolloError("UserId is required", "Bad Request", {
+        statusCode: 400,
+      });
+    }
+
+    // HANDLE THE USERID VALIDATION GENERIC CASES IN THE API GATE WAY
+
+    if(items.length === 0){
+      throw new ApolloError("Items array cannot be empty", "Bad Request", { 
+        statusCode: 400,
       });
     }
 
@@ -348,6 +355,13 @@ export const Mutation = {
     if (!user) {
       throw new ApolloError("User not found", "Not Found", {
         statusCode: 404,
+      });
+    }
+
+    // Check permission
+    if (context.user._id.toString() !== userId.toString()) {
+      throw new ApolloError("Permission Denied!", "Forbidden", {
+        statusCode: 403,
       });
     }
 
@@ -438,18 +452,30 @@ export const Mutation = {
   ) => {
     const { userId, productId } = input;
 
-    // Check permission
-    if (context.user._id.toString() !== userId.toString()) {
-      throw new ApolloError("Permission Denied!", "Forbidden", {
-        statusCode: 403,
-      });
+    if (!userId || !productId) {
+      throw new ApolloError(
+        "UserId and ProductId are required",
+        "Bad Request",
+        {
+          statusCode: 400,
+        }
+      );
     }
+
+    // HANDLE THE USERID/PRODUCTID VALIDATION GENERIC CASES IN THE API GATE WAY
 
     // Check if user exists
     const user = await context.PeopleModel.findById(userId);
     if (!user) {
       throw new ApolloError("User not found", "Not Found", {
         statusCode: 404,
+      });
+    }
+
+    // Check permission
+    if (context.user._id.toString() !== userId.toString()) {
+      throw new ApolloError("Permission Denied!", "Forbidden", {
+        statusCode: 403,
       });
     }
 
@@ -499,18 +525,20 @@ export const Mutation = {
       });
     }
 
-    // Check permission - user can only update their own cart
-    if (context.user._id.toString() !== userId.toString()) {
-      throw new ApolloError("Permission Denied!", "Forbidden", {
-        statusCode: 403,
-      });
-    }
+    // HANDLE THE USERID/PRODUCTID VALIDATION GENERIC CASES IN THE API GATE WAY
 
     // Check if user exists
     const user = await context.PeopleModel.findById(userId);
     if (!user) {
       throw new ApolloError("User not found", "Not Found", {
         statusCode: 404,
+      });
+    }
+
+    // Check permission - user can only update their own cart
+    if (context.user._id.toString() !== userId.toString()) {
+      throw new ApolloError("Permission Denied!", "Forbidden", {
+        statusCode: 403,
       });
     }
 
