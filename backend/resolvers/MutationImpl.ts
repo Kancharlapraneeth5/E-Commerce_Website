@@ -18,6 +18,7 @@ import {
   addToCartInput,
   removeFromCartInput,
   updateCartInput,
+  Order,
   MyError,
 } from "./Mutation";
 
@@ -336,7 +337,7 @@ export const Mutation = {
   ) => {
     const { userId, items } = input;
 
-    if(!userId){
+    if (!userId) {
       throw new ApolloError("UserId is required", "Bad Request", {
         statusCode: 400,
       });
@@ -344,8 +345,8 @@ export const Mutation = {
 
     // HANDLE THE USERID VALIDATION GENERIC CASES IN THE API GATE WAY
 
-    if(items.length === 0){
-      throw new ApolloError("Items array cannot be empty", "Bad Request", { 
+    if (items.length === 0) {
+      throw new ApolloError("Items array cannot be empty", "Bad Request", {
         statusCode: 400,
       });
     }
@@ -617,5 +618,77 @@ export const Mutation = {
     await cart.save();
 
     return cart;
+  },
+
+  placeOrder: async (
+    _parent: any,
+    { userId }: { userId: string },
+    context: Context
+  ) => {
+    if (!userId) {
+      throw new ApolloError("UserId is required", "Bad Request", {
+        statusCode: 400,
+      });
+    }
+
+    // Check if user exists
+    const user = await context.PeopleModel.findById(userId);
+    if (!user) {
+      throw new ApolloError("User not found", "Not Found", {
+        statusCode: 404,
+      });
+    }
+
+    // Check if cart exists
+    const cart = (await context.CartModel.findOne({ userId })) as ICart | null;
+    if (!cart) {
+      throw new ApolloError("Cart not found", "Not Found", {
+        statusCode: 404,
+      });
+    }
+
+    const orderItems = [];
+
+    // Create order
+    let totalAmount = 0;
+    for (const item of cart.items) {
+      const product = (await context.ProductModel.findById(
+        item.productId
+      )) as IProduct | null;
+
+      if (!product) {
+        throw new ApolloError("Product not found", "Not Found", {
+          statusCode: 404,
+        });
+      }
+
+      const priceAtPurchase = product.price;
+
+      orderItems.push({
+        productId: item.productId,
+        quantity: item.quantity,
+        priceAtPurchase,
+      });
+
+      totalAmount += priceAtPurchase * item.quantity;
+    }
+
+    // Save order
+    const order = new context.OrderModel({
+      userId,
+      items: orderItems,
+      totalAmount,
+      status: "pending",
+      createdAt: new Date(),
+    });
+
+    // Save the order to the database
+    await order.save();
+
+    // Clear cart
+    cart.items = [];
+    await cart.save();
+
+    return order;
   },
 };

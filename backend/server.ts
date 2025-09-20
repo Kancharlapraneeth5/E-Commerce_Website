@@ -17,6 +17,7 @@ import CategoryModel from "./models/categoryModelImpl";
 import ReviewModel from "./models/reviewModelImpl";
 import PeopleModel from "./models/peopleModelImpl";
 import CartModel from "./models/cartModelImp";
+import OrderModel from "./models/orderModelImp";
 import { connection } from "mongoose";
 
 // Load environment variables based on NODE_ENV
@@ -184,6 +185,7 @@ const server = new ApolloServer({
         ReviewModel,
         PeopleModel,
         CartModel,
+        OrderModel,
         user: null,
       };
     }
@@ -223,6 +225,7 @@ const server = new ApolloServer({
       ReviewModel,
       PeopleModel,
       CartModel,
+      OrderModel,
       user,
     };
   },

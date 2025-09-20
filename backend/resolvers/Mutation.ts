@@ -52,6 +52,20 @@ export interface updateCartInput {
   quantity: number;
 }
 
+export interface OrderItem {
+  productId: string;
+  quantity: number;
+  priceAtPurchase: number;
+}
+
+export interface Order {
+  userId: string;
+  items: OrderItem[];
+  totalAmount: number;
+  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  createdAt?: Date;
+}
+
 export interface deleteCategoryQuery {
   categoryId: Types.ObjectId;
 }
@@ -81,6 +95,7 @@ export interface Context {
   ReviewModel: Model<Document>;
   PeopleModel: Model<Document>;
   CartModel: Model<Document>;
+  OrderModel: Model<Document>;
 }
 
 export interface MyError {
