@@ -15,12 +15,22 @@ export interface Args {
   reviewId: string;
   minRating: number;
   maxRating: number;
+  userId: string;
 }
 
 export interface Context {
   ProductModel: Model<Document>;
   CategoryModel: Model<Document>;
   ReviewModel: Model<Document>;
+  CartModel: Model<Document>;
+  PeopleModel: Model<Document>;
+  user: {
+    _id: string;
+    username: string;
+    password: string;
+    role: string;
+    __v: number;
+  };
 }
 
 export interface IQueryName {
