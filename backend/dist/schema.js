@@ -31,6 +31,8 @@ exports.typeDefs = (0, apollo_server_1.gql) `
     deleteProduct(productID: ID!): Boolean!
     deleteReview(reviewID: ID!): Boolean!
     updateCategory(categoryID: ID!, input: UpdateCategoryInput!): Category
+    addToCart(input: AddToCartInput!): Cart!
+    removeFromCart(input: removeFromCartInput!): Boolean!
   }
   type Product {
     id: ID!
@@ -64,6 +66,17 @@ exports.typeDefs = (0, apollo_server_1.gql) `
     username: String!
     password: String!
     role: String!
+  }
+
+  type Cart {
+    id: ID!
+    userId: String!
+    items: [CartItem!]!
+  }
+
+  type CartItem {
+    productId: String!
+    quantity: Int!
   }
 
   input ProductFilterInput {
@@ -104,5 +117,20 @@ exports.typeDefs = (0, apollo_server_1.gql) `
     username: String!
     password: String!
     role: String!
+  }
+
+  input CartItemInput {
+    productId: String!
+    quantity: Int!
+  }
+
+  input AddToCartInput {
+    userId: String!
+    items: [CartItemInput!]!
+  }
+
+  input removeFromCartInput {
+    userId: String!
+    productId: String!
   }
 `;

@@ -15,6 +15,9 @@ const peopleSchema = new Schema<IPeople>({
     type: String,
     required: [true, "role is required"],
   },
+  refreshToken:{
+    type: String
+  }
 });
 
 // mongoose.model("model name", schema, "collection name" (optional)

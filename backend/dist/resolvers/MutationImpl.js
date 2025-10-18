@@ -252,4 +252,115 @@ exports.Mutation = {
             });
         }
     }),
+    // addToCart(userId, productId, quantity)
+    addToCart: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { input }, context) {
+        const { userId, items } = input;
+        // Check permission
+        if (context.user._id.toString() !== userId.toString()) {
+            throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", {
+                statusCode: 403,
+            });
+        }
+        // Check if user exists
+        const user = yield context.PeopleModel.findById(userId);
+        if (!user) {
+            throw new apollo_server_errors_1.ApolloError("User not found", "Not Found", {
+                statusCode: 404,
+            });
+        }
+        // Utility: Validate and decrement product stock
+        const validateAndDecrementProduct = (productId, quantity) => __awaiter(void 0, void 0, void 0, function* () {
+            const product = (yield context.ProductModel.findById(productId));
+            if (!product) {
+                throw new apollo_server_errors_1.ApolloError("Product not found", "Not Found", {
+                    statusCode: 404,
+                });
+            }
+            if (quantity > product.quantity) {
+                throw new apollo_server_errors_1.ApolloError("Requested quantity exceeds available stock", "Bad Request", {
+                    statusCode: 400,
+                });
+            }
+            product.quantity -= quantity;
+            yield product.save();
+        });
+        // Check if cart exists
+        let cart = (yield context.CartModel.findOne({ userId }));
+        // IF CART DOESN'T EXIST FOR THE USER, CREATE A NEW ONE
+        if (!cart) {
+            // New cart case
+            // UPDATE THE QUANTITY IN THE PRODUCTS COLLECTION FOR EACH ITEM
+            for (const item of items) {
+                yield validateAndDecrementProduct(item.productId.toString(), item.quantity);
+            }
+            // CREATE A NEW CART OBJECT AND SAVE IT TO THE DATABASE
+            const newCart = new context.CartModel({
+                id: (0, uuid_1.v4)(),
+                userId,
+                items,
+            });
+            yield newCart.save();
+            return newCart;
+        }
+        // CART EXISTS, UPDATE IT
+        // Update existing cart case
+        // UPDATE THE QUANTITY IN THE PRODUCTS COLLECTION FOR EACH ITEM
+        for (const item of items) {
+            const existingItem = cart.items.find((i) => i.productId.toString() === item.productId.toString());
+            // UPDATE THE PRODUCT QUANTITY IN THE PRODUCTS COLLECTION
+            yield validateAndDecrementProduct(item.productId.toString(), item.quantity);
+            // IF ITEM ALREADY EXISTS IN CART, INCREMENT THE QUANTITY
+            if (existingItem) {
+                existingItem.quantity += item.quantity;
+            }
+            // ELSE, ADD THE NEW ITEM TO THE CART
+            else {
+                cart.items.push(item);
+            }
+        }
+        yield cart.save();
+        return cart;
+    }),
+    // Remove item from cart
+    removeFromCart: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { input }, context) {
+        const { userId, productId } = input;
+        // Check permission
+        if (context.user._id.toString() !== userId.toString()) {
+            throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", {
+                statusCode: 403,
+            });
+        }
+        // Check if user exists
+        const user = yield context.PeopleModel.findById(userId);
+        if (!user) {
+            throw new apollo_server_errors_1.ApolloError("User not found", "Not Found", {
+                statusCode: 404,
+            });
+        }
+        // Check if cart exists
+        const cart = (yield context.CartModel.findOne({ userId }));
+        if (!cart) {
+            throw new apollo_server_errors_1.ApolloError("Cart not found", "Not Found", {
+                statusCode: 404,
+            });
+        }
+        // Find the item in the cart
+        const itemIndex = cart.items.findIndex((item) => item.productId.toString() === productId.toString());
+        if (itemIndex === -1) {
+            throw new apollo_server_errors_1.ApolloError("Item not found in cart", "Not Found", {
+                statusCode: 404,
+            });
+        }
+        // Remove the item from the cart
+        // What is this splice method?
+        // array.splice(startIndex, deleteCount)
+        // This method deletes the items starting from startIndex and deletes deleteCount number of items
+        // EXAMPLE TO UNDERSTAND SPLICE:
+        // const arr = [10, 20, 30, 40, 50];
+        // arr.splice(1, 2);  // removes 2 elements: index 1 (20) and index 2 (30)
+        // console.log(arr);  // [10, 40, 50]
+        cart.items.splice(itemIndex, 1);
+        yield cart.save();
+        return true;
+    }),
 };

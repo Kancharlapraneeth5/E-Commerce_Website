@@ -31,9 +31,10 @@ const productModelImpl_1 = __importDefault(require("./models/productModelImpl"))
 const categoryModelImpl_1 = __importDefault(require("./models/categoryModelImpl"));
 const reviewModelImpl_1 = __importDefault(require("./models/reviewModelImpl"));
 const peopleModelImpl_1 = __importDefault(require("./models/peopleModelImpl"));
+const cartModelImp_1 = __importDefault(require("./models/cartModelImp"));
 const mongoose_2 = require("mongoose");
 // Load environment variables based on NODE_ENV
-const environment = process.env.NODE_ENV || 'development';
+const environment = process.env.NODE_ENV || "development";
 (0, dotenv_1.config)({ path: `.env.${environment}` });
 const { sign, verify } = jsonwebtoken_1.default;
 // Create an instance of Express
@@ -105,12 +106,10 @@ app.use((req, res, next) => {
     const publicOperations = ["AddNewUser"];
     if (publicOperations.includes(operationName)) {
         // Skip authentication for public operations
-        console.log("I am in correct block!!");
         return next();
     }
     const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
     if (!token) {
-        console.log("I am in wrong block!!");
         return res.status(401).json({ error: "No token provided" });
     }
     jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET, (err, decoded) => {
@@ -132,10 +131,14 @@ process.on("uncaughtException", (err) => {
 const DB = (_a = process.env.DATABASE) === null || _a === void 0 ? void 0 : _a.replace("<PASSWORD>", process.env.DATABASE_PASSWORD || "");
 mongoose_1.default
     .connect(DB || "", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-}) // Add the 'as mongoose.ConnectOptions' type assertion
-    .then((con) => console.log("DB connection successful !"));
+// You can add connection options here if needed
+})
+    .then(() => {
+    console.log("✅ DB connection successful!");
+})
+    .catch((err) => {
+    console.error("❌ DB connection failed:", err.message);
+});
 // Create an instance of ApolloServer
 const server = new apollo_server_express_1.ApolloServer({
     typeDefs: schema_1.typeDefs,
@@ -158,6 +161,7 @@ const server = new apollo_server_express_1.ApolloServer({
                 CategoryModel: categoryModelImpl_1.default,
                 ReviewModel: reviewModelImpl_1.default,
                 PeopleModel: peopleModelImpl_1.default,
+                CartModel: cartModelImp_1.default,
                 user: null,
             };
         }
@@ -190,6 +194,7 @@ const server = new apollo_server_express_1.ApolloServer({
             CategoryModel: categoryModelImpl_1.default,
             ReviewModel: reviewModelImpl_1.default,
             PeopleModel: peopleModelImpl_1.default,
+            CartModel: cartModelImp_1.default,
             user,
         };
     }),
@@ -205,7 +210,7 @@ server.start().then(() => {
     });
     const port = Number(process.env.PORT) || 5000; // Render provides PORT, fallback to 5000
     const nodeEnv = process.env.NODE_ENV || "development";
-    const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+    const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
     // starting the server
     app.listen(port, host, () => {
         console.log(`🚀 App running in ${nodeEnv} mode at ${host}:${port}...`);
@@ -223,6 +228,3 @@ process.on("unhandledRejection", (err) => {
         });
     });
 });
-function next() {
-    throw new Error("Function not implemented.");
-}

@@ -1,9 +1,8 @@
 // Importing the required modules
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import { config } from "dotenv";
-import bcrypt from "bcryptjs";
 import jwt, { Secret, JwtPayload } from "jsonwebtoken";
 import { ApolloServer } from "apollo-server-express";
 import { ApolloError } from "apollo-server-errors";
@@ -19,12 +18,13 @@ import PeopleModel from "./models/peopleModelImpl";
 import CartModel from "./models/cartModelImp";
 import OrderModel from "./models/orderModelImp";
 import { connection } from "mongoose";
+import { authRouter } from "./auth/authController";
 
 // Load environment variables based on NODE_ENV
 const environment = process.env.NODE_ENV || "development";
 config({ path: `.env.${environment}` });
 
-const { sign, verify } = jwt;
+const { verify } = jwt;
 
 // Create an instance of Express
 const app = express();
@@ -78,61 +78,64 @@ app.options(
 
 // Use JSON body parser
 app.use(express.json());
+app.use("/auth", authRouter);
 
-app.post("/auth", async (req: Request, res: Response) => {
-  const { username, password } = req.body;
-  const user = await PeopleModel.findOne({ username });
+// app.use(authenticate);
 
-  // throw an error the user wasn't found
-  if (!user) {
-    return res.status(400).json({ error: "Invalid login credentials" });
-  }
+// app.post("/auth", async (req: Request, res: Response) => {
+//   const { username, password } = req.body;
+//   const user = await PeopleModel.findOne({ username });
 
-  // check the user's password
-  const valid = await bcrypt.compare(password, user.password);
+//   // throw an error the user wasn't found
+//   if (!user) {
+//     return res.status(400).json({ error: "Invalid login credentials" });
+//   }
 
-  // throw an error if the password was incorrect
-  if (!valid) {
-    return res.status(400).json({ error: "Invalid login credentials" });
-  }
+//   // check the user's password
+//   const valid = await bcrypt.compare(password, user.password);
 
-  // create a token
-  const token = sign({ id: user.id }, process.env.JWT_SECRET as Secret, {
-    expiresIn: "1h",
-  });
+//   // throw an error if the password was incorrect
+//   if (!valid) {
+//     return res.status(400).json({ error: "Invalid login credentials" });
+//   }
 
-  // return the token
-  res.json({ token });
-});
+//   // create a token
+//   const token = sign({ id: user.id }, process.env.JWT_SECRET as Secret, {
+//     expiresIn: "1h",
+//   });
 
-// MIDDLE WARE to verify the user token.
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const operationName = req.body.operationName;
+//   // return the token
+//   res.json({ token });
+// });
 
-  // List of public operations that do not require authentication
-  const publicOperations = ["AddNewUser"];
+// // MIDDLE WARE to verify the user token.
+// app.use((req: Request, res: Response, next: NextFunction) => {
+//   const operationName = req.body.operationName;
 
-  if (publicOperations.includes(operationName)) {
-    // Skip authentication for public operations
-    return next();
-  }
+//   // List of public operations that do not require authentication
+//   const publicOperations = ["AddNewUser"];
 
-  const token = req.headers.authorization?.split(" ")[1];
+//   if (publicOperations.includes(operationName)) {
+//     // Skip authentication for public operations
+//     return next();
+//   }
 
-  if (!token) {
-    return res.status(401).json({ error: "No token provided" });
-  }
+//   const token = req.headers.authorization?.split(" ")[1];
 
-  jwt.verify(token, process.env.JWT_SECRET as Secret, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ error: "Failed to authenticate token" });
-    }
+//   if (!token) {
+//     return res.status(401).json({ error: "No token provided" });
+//   }
 
-    // Add type assertion to ensure 'decoded' is not undefined
-    req.body.userId = (decoded as { id: string }).id;
-    next();
-  });
-});
+//   jwt.verify(token, process.env.JWT_SECRET as Secret, (err, decoded) => {
+//     if (err) {
+//       return res.status(401).json({ error: "Failed to authenticate token" });
+//     }
+
+//     // Add type assertion to ensure 'decoded' is not undefined
+//     req.body.userId = (decoded as { id: string }).id;
+//     next();
+//   });
+// });
 
 // handling the uncaught exceptions
 process.on("uncaughtException", (err: Error) => {
@@ -241,6 +244,11 @@ server.start().then(() => {
     path: "/graphql",
   });
 
+  app.use((_req, res, next) => {
+    res.status(404).json({ error: "Endpoint not found" });
+    next();
+  });
+
   const port = Number(process.env.PORT) || 5000; // Render provides PORT, fallback to 5000
   const nodeEnv = process.env.NODE_ENV || "development";
   const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
@@ -254,6 +262,8 @@ server.start().then(() => {
     console.log(`🌐 Allowed CORS origins: ${allowedOrigins.join(", ")}`);
   });
 });
+
+
 
 //Handle unhandled promise rejections
 process.on("unhandledRejection", (err: Error) => {
