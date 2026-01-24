@@ -19,6 +19,7 @@ exports.typeDefs = (0, apollo_server_1.gql) `
       categoryId: ID!
     ): [Product]
     productsByCategory(categoryId: ID!): [Product]
+    getCart(userId: ID!): Cart
   }
 
   type Mutation {
@@ -33,6 +34,7 @@ exports.typeDefs = (0, apollo_server_1.gql) `
     updateCategory(categoryID: ID!, input: UpdateCategoryInput!): Category
     addToCart(input: AddToCartInput!): Cart!
     removeFromCart(input: removeFromCartInput!): Boolean!
+    updateCart(input: updateCartInput!): Cart!
   }
   type Product {
     id: ID!
@@ -132,5 +134,11 @@ exports.typeDefs = (0, apollo_server_1.gql) `
   input removeFromCartInput {
     userId: String!
     productId: String!
+  }
+
+  input updateCartInput {
+    userId: String!
+    productId: String!
+    quantity: Int!
   }
 `;

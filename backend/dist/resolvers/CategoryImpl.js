@@ -12,19 +12,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Category = void 0;
 const apollo_server_errors_1 = require("apollo-server-errors");
 exports.Category = {
-    // here the parent is the category object which has the id field
     products: (_a, _b, context_1) => __awaiter(void 0, [_a, _b, context_1], void 0, function* ({ id }, { filter }, context) {
-        // categoryId is the field in Query interface
-        // id is the field in the object passed as the first argument { id }: { id: string }
-        let query = { categoryId: id };
-        if (filter) {
-            if (filter.onSale !== undefined) {
-                query.onSale = filter.onSale;
-            }
-        }
         try {
-            const filterCategoryProducts = yield context.ProductModel.find(query);
-            return filterCategoryProducts;
+            const where = { categoryId: Number(id) };
+            if (filter && filter.onSale !== undefined) {
+                where.onSale = filter.onSale;
+            }
+            const products = yield context.prisma.product.findMany({ where });
+            return products;
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the products", "Internal Server Error", { statusCode: 500 });

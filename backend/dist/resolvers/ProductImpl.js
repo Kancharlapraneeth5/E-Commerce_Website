@@ -11,29 +11,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Product = void 0;
 const apollo_server_errors_1 = require("apollo-server-errors");
-// In the below two methods we are using two different promises to fetch the category and reviews of a product because
-// In category method we are using findById method which returns a single document and in reviews method we are using
-// find method which returns an array of documents.
-// 1) Promise<Document | null>
-// 2) Promise<Document[]>
 exports.Product = {
-    category: (_a, args_1, context_1) => __awaiter(void 0, [_a, args_1, context_1], void 0, function* (
-    // here the parent is the product object which has the categoryId field
-    { categoryId }, args, context) {
+    category: (_a, _args_1, context_1) => __awaiter(void 0, [_a, _args_1, context_1], void 0, function* ({ categoryId }, _args, context) {
         try {
-            const Category = yield context.CategoryModel.findById(categoryId);
-            return Category;
+            const category = yield context.prisma.category.findUnique({ where: { id: Number(categoryId) } });
+            return category;
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the category", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    reviews: (_a, args_1, context_1) => __awaiter(void 0, [_a, args_1, context_1], void 0, function* (
-    // here the parent is the product object which has the productId field
-    { id }, args, context) {
+    reviews: (_a, _args_1, context_1) => __awaiter(void 0, [_a, _args_1, context_1], void 0, function* ({ id }, _args, context) {
         try {
-            let query = { productId: id };
-            const reviews = yield context.ReviewModel.find(query);
+            const reviews = yield context.prisma.review.findMany({ where: { productId: Number(id) } });
             return reviews;
         }
         catch (err) {

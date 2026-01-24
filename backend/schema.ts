@@ -3,21 +3,21 @@ import { gql } from "apollo-server";
 export const typeDefs = gql`
   type Query {
     products(filter: ProductFilterInput): [Product!]!
-    product(productId: ID!): Product
+    product(productId: Int!): Product
     productByName(productName: String!): Product
     categories: [Category!]!
-    category(categoryId: ID!): Category
+    category(categoryId: Int!): Category
     categoryByName(categoryName: String!): Category
     reviews: [Review!]!
-    reviewsByProductId(productId: ID!): [Review!]!
-    review(reviewId: ID!): Review
+    reviewsByProductId(productId: Int!): [Review!]!
+    review(reviewId: Int!): Review
     productsByReviewRating(
       minRating: Int!
       maxRating: Int!
-      categoryId: ID!
+      categoryId: Int!
     ): [Product]
-    productsByCategory(categoryId: ID!): [Product]
-    getCart(userId: ID!): Cart
+    productsByCategory(categoryId: Int!): [Product]
+    getCart(userId: Int!): Cart
   }
 
   type Mutation {
@@ -26,16 +26,16 @@ export const typeDefs = gql`
     addNewProducts(input: AddProductsInput!): [Product!]!
     addNewReview(input: AddReviewInput!): Review!
     addNewUser(input: AddUserInput!): User!
-    deleteCategory(categoryID: ID!): Boolean!
-    deleteProduct(productID: ID!): Boolean!
-    deleteReview(reviewID: ID!): Boolean!
-    updateCategory(categoryID: ID!, input: UpdateCategoryInput!): Category
+    deleteCategory(categoryID: Int!): Boolean!
+    deleteProduct(productID: Int!): Boolean!
+    deleteReview(reviewID: Int!): Boolean!
+    updateCategory(categoryID: Int!, input: UpdateCategoryInput!): Category
     addToCart(input: AddToCartInput!): Cart!
     removeFromCart(input: removeFromCartInput!): Boolean!
     updateCart(input: updateCartInput!): Cart!
   }
   type Product {
-    id: ID!
+    id: Int!
     name: String!
     description: String!
     quantity: Int!
@@ -47,35 +47,35 @@ export const typeDefs = gql`
   }
 
   type Category {
-    id: ID!
+    id: Int!
     name: String!
     products(filter: ProductFilterInput): [Product!]!
   }
 
   type Review {
-    id: ID!
+    id: Int!
     date: String!
     title: String!
     comment: String!
     rating: Int!
-    productId: String!
+    productId: Int!
   }
 
   type User {
-    id: ID!
+    id: Int!
     username: String!
     password: String!
     role: String!
   }
 
   type Cart {
-    id: ID!
-    userId: String!
+    id: Int!
+    userId: Int!
     items: [CartItem!]!
   }
 
   type CartItem {
-    productId: String!
+    productId: Int!
     quantity: Int!
   }
 
@@ -98,7 +98,7 @@ export const typeDefs = gql`
     image: String!
     price: Float!
     onSale: Boolean!
-    categoryId: String!
+    categoryId: Int!
   }
 
   input AddProductsInput {
@@ -110,7 +110,7 @@ export const typeDefs = gql`
     title: String!
     comment: String!
     rating: Int!
-    productId: ID!
+    productId: Int!
   }
 
   input AddUserInput {
@@ -120,23 +120,23 @@ export const typeDefs = gql`
   }
 
   input CartItemInput {
-    productId: String!
+    productId: Int!
     quantity: Int!
   }
 
   input AddToCartInput {
-    userId: String!
+    userId: Int!
     items: [CartItemInput!]!
   }
 
   input removeFromCartInput {
-    userId: String!
-    productId: String!
+    userId: Int!
+    productId: Int!
   }
 
   input updateCartInput {
-    userId: String!
-    productId: String!
+    userId: Int!
+    productId: Int!
     quantity: Int!
   }
 `;

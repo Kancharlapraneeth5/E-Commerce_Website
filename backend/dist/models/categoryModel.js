@@ -1,2 +1,2 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+// Use Prisma Category type from @prisma/client
