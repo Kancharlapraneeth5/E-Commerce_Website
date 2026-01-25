@@ -1,10 +1,7 @@
 import express from "express";
-import { getUserById, getUserByUsername } from "../models/peopleModel";
+import { getUserById, getUserByUsername, updateUserById, findUserByRefreshToken, clearUserRefreshToken } from "../models/peopleModel";
 import { hashPassword, comparePassword, generateAccessToken, generateRefreshToken } from "./authUtils";
 import jwt, { Secret } from "jsonwebtoken";
-
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 
 const router = express.Router();
 
@@ -26,7 +23,7 @@ router.post("/login", async (req, res) => {
   const refreshToken = generateRefreshToken(tokenPayload);
 
   // ✅ Save refresh token
-  await prisma.people.update({ where: { id: user.id }, data: { refreshToken } });
+  await updateUserById(user.id, { refreshToken });
 
   res.json({ accessToken, refreshToken });
 });
@@ -38,7 +35,7 @@ router.post("/refresh", async (req, res) => {
     return res.status(401).json({ error: "No refresh token provided" });
   }
 
-  const user = await prisma.people.findFirst({ where: { refreshToken } });
+  const user = await findUserByRefreshToken(refreshToken);
   if (!user) {
     return res.status(401).json({ error: "Invalid refresh token" });
   }
@@ -52,9 +49,9 @@ router.post("/refresh", async (req, res) => {
 // 🟢 Logout
 router.post("/logout", async (req, res) => {
   const { refreshToken } = req.body;
-  const user = await prisma.people.findFirst({ where: { refreshToken } });
+  const user = await findUserByRefreshToken(refreshToken);
   if (user) {
-    await prisma.people.update({ where: { id: user.id }, data: { refreshToken: null } });
+    await clearUserRefreshToken(user.id);
   }
 
   res.json({ message: "User logged out" });
@@ -83,7 +80,7 @@ router.post("/passwordreset", async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    await prisma.people.update({ where: { id: user.id }, data: { password: await hashPassword(newPassword) } });
+    await updateUserById(user.id, { password: await hashPassword(newPassword) });
     res.json({ message: "Password updated successfully" });
   } catch (error) {
     return res.status(400).json({ error: "Invalid or expired token" });

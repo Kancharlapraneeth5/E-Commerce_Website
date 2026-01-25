@@ -11,15 +11,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Category = void 0;
 const apollo_server_errors_1 = require("apollo-server-errors");
+const productModel_1 = require("../models/productModel");
 exports.Category = {
-    products: (_a, _b, context_1) => __awaiter(void 0, [_a, _b, context_1], void 0, function* ({ id }, { filter }, context) {
+    products: (_a, _b) => __awaiter(void 0, [_a, _b], void 0, function* ({ id }, { filter }) {
         try {
-            const where = { categoryId: Number(id) };
-            if (filter && filter.onSale !== undefined) {
-                where.onSale = filter.onSale;
-            }
-            const products = yield context.prisma.product.findMany({ where });
-            return products;
+            return yield (0, productModel_1.getProductsByCategory)(Number(id), filter);
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the products", "Internal Server Error", { statusCode: 500 });

@@ -20,6 +20,7 @@ import { getProductById, getProductByName, getAllProducts, createProduct, create
 import { getReviewById, getReviewsByProductId, getAllReviews, createReview, deleteReview } from "../models/reviewModel";
 import { getUserById, getUserByUsername, getAllUsers, createUser } from "../models/peopleModel";
 import { getCartByUserId, getCartItem, createCart, upsertCart, updateCartItem, deleteCartItem } from "../models/cartModel";
+import { addToCartTransaction, removeFromCartTransaction, updateCartTransaction } from "../models/cartTransactionModel";
 
 export const Mutation = {
   addNewCategory: async (_parent: any, { input }: { input: CategoryInput }, context: Context) => {
@@ -99,27 +100,27 @@ export const Mutation = {
     }
   },
 
-  deleteCategory: async (_parent: any, { input }: { input: deleteCategoryQuery }, context: Context) => {
-    const { categoryId } = input;
+  deleteCategory: async (_parent: any, input: deleteCategoryQuery, context: Context) => {
+    const { categoryID } = input;
     if (context.user.role !== "admin") {
       throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
     }
     try {
-      await deleteCategory(categoryId);
-      await updateProduct(categoryId, { categoryId: null }); // This may need to update multiple products
+      await deleteCategory(categoryID);
+      await updateProduct(categoryID, { categoryId: null }); // This may need to update multiple products
       return true;
     } catch (err) {
       throw new ApolloError("An error occurred while deleting the category", "Internal Server Error", { statusCode: 500 });
     }
   },
 
-  deleteProduct: async (_parent: any, { input }: { input: deleteProductQuery }, context: Context) => {
-    const { productId } = input;
+  deleteProduct: async (_parent: any, input: deleteProductQuery , context: Context) => {
+    const { productID } = input;
     if (context.user.role !== "admin") {
       throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
     }
     try {
-      await deleteProduct(productId);
+      await deleteProduct(productID);
       // You may want to add a deleteManyReviewsByProductId method for bulk delete
       return true;
     } catch (err) {
@@ -127,26 +128,26 @@ export const Mutation = {
     }
   },
 
-  deleteReview: async (_parent: any, { input }: { input: deleteReviewQuery }, context: Context) => {
-    const { reviewId } = input;
+  deleteReview: async (_parent: any, input: deleteReviewQuery, context: Context) => {
+    const { reviewID } = input;
     if (context.user.role !== "admin") {
       throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
     }
     try {
-      await deleteReview(reviewId);
+      await deleteReview(reviewID);
       return true;
     } catch (err) {
       throw new ApolloError("An error occurred while deleting the review", "Internal Server Error", { statusCode: 500 });
     }
   },
 
-  updateCategory: async (_parent: any, { input }: { input: updateCategoryInput & { categoryId: number } }, context: Context) => {
-    const { categoryId, categoryName } = input;
+  updateCategory: async (_parent: any, input: updateCategoryInput & { categoryID: number }, context: Context) => {
+    const { categoryID, name } = input;
     if (context.user.role !== "admin") {
       throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
     }
     try {
-      const updatedCategory = await updateCategory(categoryId, categoryName);
+      const updatedCategory = await updateCategory(categoryID, name);
       return updatedCategory;
     } catch (err) {
       throw new ApolloError("An error occurred while updating the category", "Internal Server Error", { statusCode: 500 });
@@ -170,40 +171,8 @@ export const Mutation = {
     if (context.user.id !== userId) {
       throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
     }
-    // Transaction: decrement product stock and update cart atomically
     try {
-      await context.prisma.$transaction(async (tx: typeof context.prisma) => {
-        // For each item, decrement product stock if enough quantity
-        for (const item of items) {
-          const product = await getProductById(item.productId);
-          if (!product) {
-            throw new ApolloError("Product not found", "Not Found", { statusCode: 404 });
-          }
-          if (product.quantity < item.quantity) {
-            throw new ApolloError(`Requested quantity exceeds available stock for product ${item.productId}`, "Bad Request", { statusCode: 400 });
-          }
-          await tx.product.update({ where: { id: item.productId }, data: { quantity: { decrement: item.quantity } } });
-        }
-        // Upsert cart
-        const cart = await tx.cart.upsert({
-          where: { userId },
-          update: {
-            items: {
-              upsert: items.map(item => ({
-                where: { cartId_productId: { cartId: undefined, productId: item.productId } }, // cartId will be set after cart is created
-                update: { quantity: { increment: item.quantity } },
-                create: { productId: item.productId, quantity: item.quantity },
-              })),
-            },
-          },
-          create: {
-            userId,
-            items: { create: items.map(item => ({ productId: item.productId, quantity: item.quantity })) },
-          },
-          include: { items: true },
-        });
-        return cart;
-      });
+      await addToCartTransaction(userId, items, context);
       const persistedCart = await getCartByUserId(userId);
       return persistedCart;
     } catch (err) {
@@ -225,24 +194,8 @@ export const Mutation = {
     if (context.user.id !== userId) {
       throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
     }
-    // Transaction: restore product inventory and remove the item atomically
     try {
-      await context.prisma.$transaction(async (tx: typeof context.prisma) => {
-        // Find cart for user
-        const cart = await getCartByUserId(userId);
-        if (!cart) {
-          throw new ApolloError("Cart not found", "Not Found", { statusCode: 404 });
-        }
-        // Find cart item
-        const cartItem = await getCartItem(cart.id, productId);
-        if (!cartItem) {
-          throw new ApolloError("Item not found in cart", "Not Found", { statusCode: 404 });
-        }
-        // Restore product quantity
-        await tx.product.update({ where: { id: productId }, data: { quantity: { increment: cartItem.quantity } } });
-        // Remove item from cart
-        await tx.cartItem.delete({ where: { id: cartItem.id } });
-      });
+      await removeFromCartTransaction(userId, productId, context);
       return true;
     } catch (err) {
       throw err;
@@ -268,36 +221,8 @@ export const Mutation = {
     if (!product) {
       throw new ApolloError("Product not found", "Not Found", { statusCode: 404 });
     }
-    // Transaction: adjust inventory and update cart
     try {
-      await context.prisma.$transaction(async (tx: typeof context.prisma) => {
-        // Find cart for user
-        const cart = await tx.cart.findUnique({ where: { userId } });
-        if (!cart) {
-          throw new ApolloError("Cart not found", "Not Found", { statusCode: 404 });
-        }
-        // Find cart item
-        const cartItem = await tx.cartItem.findFirst({ where: { cartId: cart.id, productId } });
-        if (!cartItem) {
-          throw new ApolloError("Item not found in cart", "Not Found", { statusCode: 404 });
-        }
-        const currentQuantityInCart = cartItem.quantity;
-        if (quantity === 0) {
-          await tx.product.update({ where: { id: productId }, data: { quantity: { increment: currentQuantityInCart } } });
-          await tx.cartItem.delete({ where: { id: cartItem.id } });
-          return;
-        }
-        const quantityDifference = quantity - currentQuantityInCart;
-        if (quantityDifference > 0) {
-          if (product.quantity < quantityDifference) {
-            throw new ApolloError(`Insufficient stock. Only ${product.quantity} items available to add.`, "Bad Request", { statusCode: 400 });
-          }
-          await tx.product.update({ where: { id: productId }, data: { quantity: { decrement: quantityDifference } } });
-        } else if (quantityDifference < 0) {
-          await tx.product.update({ where: { id: productId }, data: { quantity: { increment: Math.abs(quantityDifference) } } });
-        }
-        await tx.cartItem.update({ where: { id: cartItem.id }, data: { quantity } });
-      });
+      await updateCartTransaction(userId, productId, quantity, context);
       const updatedCart = await getCartByUserId(userId);
       return updatedCart;
     } catch (err) {

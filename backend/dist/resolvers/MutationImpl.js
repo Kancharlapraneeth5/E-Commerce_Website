@@ -15,14 +15,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Mutation = void 0;
 const apollo_server_errors_1 = require("apollo-server-errors");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const categoryModel_1 = require("../models/categoryModel");
+const productModel_1 = require("../models/productModel");
+const reviewModel_1 = require("../models/reviewModel");
+const peopleModel_1 = require("../models/peopleModel");
+const cartModel_1 = require("../models/cartModel");
+const cartTransactionModel_1 = require("../models/cartTransactionModel");
 exports.Mutation = {
     addNewCategory: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { input }, context) {
         if (context.user.role !== "admin") {
             throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
         }
         try {
-            const newCategory = yield context.prisma.category.create({ data: { name: input.name } });
-            return newCategory;
+            // Use Prisma directly for create, but use model methods for fetches
+            const newCategory = yield (0, categoryModel_1.createCategory)(input.name);
+            return yield (0, categoryModel_1.getCategoryById)(newCategory.id);
         }
         catch (err) {
             if (err.code === "P2002") {
@@ -36,8 +43,8 @@ exports.Mutation = {
             throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
         }
         try {
-            const newProduct = yield context.prisma.product.create({ data: input });
-            return newProduct;
+            const newProduct = yield (0, productModel_1.createProduct)(input);
+            return yield (0, productModel_1.getProductById)(newProduct.id);
         }
         catch (err) {
             if (err.code === "P2002") {
@@ -51,7 +58,7 @@ exports.Mutation = {
             throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
         }
         try {
-            const created = yield context.prisma.product.createMany({ data: input.products });
+            const created = yield (0, productModel_1.createProducts)(input.products);
             return created;
         }
         catch (err) {
@@ -66,8 +73,8 @@ exports.Mutation = {
             throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
         }
         try {
-            const newReview = yield context.prisma.review.create({ data: input });
-            return newReview;
+            const newReview = yield (0, reviewModel_1.createReview)(input);
+            return yield (0, reviewModel_1.getReviewById)(newReview.id);
         }
         catch (err) {
             if (err.code === "P2002") {
@@ -80,64 +87,66 @@ exports.Mutation = {
         const { username, password, role } = input;
         const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
         try {
-            const newUser = yield context.prisma.people.create({ data: { username, password: hashedPassword, role } });
-            return newUser;
-        }
-        catch (err) {
-            if (err.code === "P2002") {
+            // Check if username already exists using model method
+            const existingUser = yield (0, peopleModel_1.getUserByUsername)(username);
+            if (existingUser) {
                 throw new apollo_server_errors_1.ApolloError("Username must be unique", "Conflict", { statusCode: 409 });
             }
+            const newUser = yield (0, peopleModel_1.createUser)({ username, password: hashedPassword, role });
+            return yield (0, peopleModel_1.getUserById)(newUser.id);
+        }
+        catch (err) {
             throw err;
         }
     }),
-    deleteCategory: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { input }, context) {
-        const { categoryId } = input;
+    deleteCategory: (_parent, input, context) => __awaiter(void 0, void 0, void 0, function* () {
+        const { categoryID } = input;
         if (context.user.role !== "admin") {
             throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
         }
         try {
-            yield context.prisma.category.delete({ where: { id: categoryId } });
-            yield context.prisma.product.updateMany({ where: { categoryId }, data: { categoryId: null } });
+            yield (0, categoryModel_1.deleteCategory)(categoryID);
+            yield (0, productModel_1.updateProduct)(categoryID, { categoryId: null }); // This may need to update multiple products
             return true;
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while deleting the category", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    deleteProduct: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { input }, context) {
-        const { productId } = input;
+    deleteProduct: (_parent, input, context) => __awaiter(void 0, void 0, void 0, function* () {
+        const { productID } = input;
         if (context.user.role !== "admin") {
             throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
         }
         try {
-            yield context.prisma.product.delete({ where: { id: productId } });
-            yield context.prisma.review.deleteMany({ where: { productId } });
+            yield (0, productModel_1.deleteProduct)(productID);
+            // You may want to add a deleteManyReviewsByProductId method for bulk delete
             return true;
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while deleting the product", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    deleteReview: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { input }, context) {
-        const { reviewId } = input;
+    deleteReview: (_parent, input, context) => __awaiter(void 0, void 0, void 0, function* () {
+        const { reviewID } = input;
         if (context.user.role !== "admin") {
             throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
         }
         try {
-            yield context.prisma.review.delete({ where: { id: reviewId } });
+            yield (0, reviewModel_1.deleteReview)(reviewID);
             return true;
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while deleting the review", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    updateCategory: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { input }, context) {
-        const { categoryId, categoryName } = input;
+    updateCategory: (_parent, input, context) => __awaiter(void 0, void 0, void 0, function* () {
+        const { categoryID, name } = input;
         if (context.user.role !== "admin") {
             throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
         }
         try {
-            const updatedCategory = yield context.prisma.category.update({ where: { id: categoryId }, data: { name: categoryName } });
+            const updatedCategory = yield (0, categoryModel_1.updateCategory)(categoryID, name);
             return updatedCategory;
         }
         catch (err) {
@@ -153,7 +162,7 @@ exports.Mutation = {
             throw new apollo_server_errors_1.ApolloError("Items array cannot be empty", "Bad Request", { statusCode: 400 });
         }
         // Check if user exists
-        const user = yield context.prisma.people.findUnique({ where: { id: userId } });
+        const user = yield (0, peopleModel_1.getUserById)(userId);
         if (!user) {
             throw new apollo_server_errors_1.ApolloError("User not found", "Not Found", { statusCode: 404 });
         }
@@ -161,41 +170,9 @@ exports.Mutation = {
         if (context.user.id !== userId) {
             throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
         }
-        // Transaction: decrement product stock and update cart atomically
         try {
-            yield context.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-                // For each item, decrement product stock if enough quantity
-                for (const item of items) {
-                    const product = yield tx.product.findUnique({ where: { id: item.productId } });
-                    if (!product) {
-                        throw new apollo_server_errors_1.ApolloError("Product not found", "Not Found", { statusCode: 404 });
-                    }
-                    if (product.quantity < item.quantity) {
-                        throw new apollo_server_errors_1.ApolloError(`Requested quantity exceeds available stock for product ${item.productId}`, "Bad Request", { statusCode: 400 });
-                    }
-                    yield tx.product.update({ where: { id: item.productId }, data: { quantity: { decrement: item.quantity } } });
-                }
-                // Upsert cart
-                const cart = yield tx.cart.upsert({
-                    where: { userId },
-                    update: {
-                        items: {
-                            upsert: items.map(item => ({
-                                where: { productId_userId: { productId: item.productId, userId } },
-                                update: { quantity: { increment: item.quantity } },
-                                create: { productId: item.productId, quantity: item.quantity },
-                            })),
-                        },
-                    },
-                    create: {
-                        userId,
-                        items: { create: items.map(item => ({ productId: item.productId, quantity: item.quantity })) },
-                    },
-                    include: { items: true },
-                });
-                return cart;
-            }));
-            const persistedCart = yield context.prisma.cart.findUnique({ where: { userId }, include: { items: true } });
+            yield (0, cartTransactionModel_1.addToCartTransaction)(userId, items, context);
+            const persistedCart = yield (0, cartModel_1.getCartByUserId)(userId);
             return persistedCart;
         }
         catch (err) {
@@ -208,7 +185,7 @@ exports.Mutation = {
             throw new apollo_server_errors_1.ApolloError("UserId and ProductId are required", "Bad Request", { statusCode: 400 });
         }
         // Check if user exists
-        const user = yield context.prisma.people.findUnique({ where: { id: userId } });
+        const user = yield (0, peopleModel_1.getUserById)(userId);
         if (!user) {
             throw new apollo_server_errors_1.ApolloError("User not found", "Not Found", { statusCode: 404 });
         }
@@ -216,19 +193,8 @@ exports.Mutation = {
         if (context.user.id !== userId) {
             throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
         }
-        // Transaction: restore product inventory and remove the item atomically
         try {
-            yield context.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-                // Find cart item
-                const cartItem = yield tx.cartItem.findUnique({ where: { productId_userId: { productId, userId } } });
-                if (!cartItem) {
-                    throw new apollo_server_errors_1.ApolloError("Item not found in cart", "Not Found", { statusCode: 404 });
-                }
-                // Restore product quantity
-                yield tx.product.update({ where: { id: productId }, data: { quantity: { increment: cartItem.quantity } } });
-                // Remove item from cart
-                yield tx.cartItem.delete({ where: { productId_userId: { productId, userId } } });
-            }));
+            yield (0, cartTransactionModel_1.removeFromCartTransaction)(userId, productId, context);
             return true;
         }
         catch (err) {
@@ -241,7 +207,7 @@ exports.Mutation = {
             throw new apollo_server_errors_1.ApolloError("Invalid input parameters", "Bad Request", { statusCode: 400 });
         }
         // Check if user exists
-        const user = yield context.prisma.people.findUnique({ where: { id: userId } });
+        const user = yield (0, peopleModel_1.getUserById)(userId);
         if (!user) {
             throw new apollo_server_errors_1.ApolloError("User not found", "Not Found", { statusCode: 404 });
         }
@@ -250,36 +216,13 @@ exports.Mutation = {
             throw new apollo_server_errors_1.ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
         }
         // Check if product exists
-        const product = yield context.prisma.product.findUnique({ where: { id: productId } });
+        const product = yield (0, productModel_1.getProductById)(productId);
         if (!product) {
             throw new apollo_server_errors_1.ApolloError("Product not found", "Not Found", { statusCode: 404 });
         }
-        // Transaction: adjust inventory and update cart
         try {
-            yield context.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-                const cartItem = yield tx.cartItem.findUnique({ where: { productId_userId: { productId, userId } } });
-                if (!cartItem) {
-                    throw new apollo_server_errors_1.ApolloError("Item not found in cart", "Not Found", { statusCode: 404 });
-                }
-                const currentQuantityInCart = cartItem.quantity;
-                if (quantity === 0) {
-                    yield tx.product.update({ where: { id: productId }, data: { quantity: { increment: currentQuantityInCart } } });
-                    yield tx.cartItem.delete({ where: { productId_userId: { productId, userId } } });
-                    return;
-                }
-                const quantityDifference = quantity - currentQuantityInCart;
-                if (quantityDifference > 0) {
-                    if (product.quantity < quantityDifference) {
-                        throw new apollo_server_errors_1.ApolloError(`Insufficient stock. Only ${product.quantity} items available to add.`, "Bad Request", { statusCode: 400 });
-                    }
-                    yield tx.product.update({ where: { id: productId }, data: { quantity: { decrement: quantityDifference } } });
-                }
-                else if (quantityDifference < 0) {
-                    yield tx.product.update({ where: { id: productId }, data: { quantity: { increment: Math.abs(quantityDifference) } } });
-                }
-                yield tx.cartItem.update({ where: { productId_userId: { productId, userId } }, data: { quantity } });
-            }));
-            const updatedCart = yield context.prisma.cart.findUnique({ where: { userId }, include: { items: true } });
+            yield (0, cartTransactionModel_1.updateCartTransaction)(userId, productId, quantity, context);
+            const updatedCart = yield (0, cartModel_1.getCartByUserId)(userId);
             return updatedCart;
         }
         catch (err) {

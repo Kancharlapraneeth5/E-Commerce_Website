@@ -11,20 +11,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Product = void 0;
 const apollo_server_errors_1 = require("apollo-server-errors");
+const categoryModel_1 = require("../models/categoryModel");
+const reviewModel_1 = require("../models/reviewModel");
 exports.Product = {
-    category: (_a, _args_1, context_1) => __awaiter(void 0, [_a, _args_1, context_1], void 0, function* ({ categoryId }, _args, context) {
+    category: (_a, _args_1) => __awaiter(void 0, [_a, _args_1], void 0, function* ({ categoryId }, _args) {
         try {
-            const category = yield context.prisma.category.findUnique({ where: { id: Number(categoryId) } });
-            return category;
+            return yield (0, categoryModel_1.getCategoryById)(Number(categoryId));
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the category", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    reviews: (_a, _args_1, context_1) => __awaiter(void 0, [_a, _args_1, context_1], void 0, function* ({ id }, _args, context) {
+    reviews: (_a, _args_1) => __awaiter(void 0, [_a, _args_1], void 0, function* ({ id }, _args) {
         try {
-            const reviews = yield context.prisma.review.findMany({ where: { productId: Number(id) } });
-            return reviews;
+            return yield (0, reviewModel_1.getReviewsByProductId)(Number(id));
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the reviews", "Internal Server Error", { statusCode: 500 });

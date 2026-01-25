@@ -11,87 +11,95 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Query = void 0;
 const apollo_server_errors_1 = require("apollo-server-errors");
+const productModel_1 = require("../models/productModel");
+const categoryModel_1 = require("../models/categoryModel");
+const reviewModel_1 = require("../models/reviewModel");
 exports.Query = {
-    products: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { filter }, context) {
+    products: (_parent_1, _a) => __awaiter(void 0, [_parent_1, _a], void 0, function* (_parent, { filter }) {
         try {
-            const where = {};
-            if (filter && filter.onSale !== undefined) {
-                where.onSale = filter.onSale;
-            }
-            const products = yield context.prisma.product.findMany({ where });
-            return products;
+            return yield (0, productModel_1.getAllProducts)(filter);
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the products", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    product: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { productId }, context) {
+    product: (_parent_1, _a) => __awaiter(void 0, [_parent_1, _a], void 0, function* (_parent, { productId }) {
         try {
-            const product = yield context.prisma.product.findUnique({ where: { id: productId } });
-            return product;
+            if (typeof productId !== "number") {
+                throw new apollo_server_errors_1.ApolloError("productId is required and must be a number", "Bad Request", { statusCode: 400 });
+            }
+            return yield (0, productModel_1.getProductById)(productId);
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the product", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    productByName: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { productName }, context) {
+    productByName: (_parent_1, _a) => __awaiter(void 0, [_parent_1, _a], void 0, function* (_parent, { productName }) {
         try {
-            const product = yield context.prisma.product.findFirst({ where: { name: productName } });
-            return product;
+            if (typeof productName !== "string") {
+                throw new apollo_server_errors_1.ApolloError("productName is required and must be a string", "Bad Request", { statusCode: 400 });
+            }
+            return yield (0, productModel_1.getProductByName)(productName);
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the product by name", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    categories: (_parent, _args, context) => __awaiter(void 0, void 0, void 0, function* () {
+    categories: () => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const categories = yield context.prisma.category.findMany();
-            return categories;
+            return yield (0, categoryModel_1.getAllCategories)();
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the categories", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    category: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { categoryId }, context) {
+    category: (_parent_1, _a) => __awaiter(void 0, [_parent_1, _a], void 0, function* (_parent, { categoryId }) {
         try {
-            const category = yield context.prisma.category.findUnique({ where: { id: categoryId } });
-            return category;
+            if (typeof categoryId !== "number") {
+                throw new apollo_server_errors_1.ApolloError("categoryId is required and must be a number", "Bad Request", { statusCode: 400 });
+            }
+            return yield (0, categoryModel_1.getCategoryById)(categoryId);
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the category", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    categoryByName: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { categoryName }, context) {
+    categoryByName: (_parent_1, _a) => __awaiter(void 0, [_parent_1, _a], void 0, function* (_parent, { categoryName }) {
         try {
-            const category = yield context.prisma.category.findFirst({ where: { name: categoryName } });
-            return category;
+            if (typeof categoryName !== "string") {
+                throw new apollo_server_errors_1.ApolloError("categoryName is required and must be a string", "Bad Request", { statusCode: 400 });
+            }
+            return yield (0, categoryModel_1.getCategoryByName)(categoryName);
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the category by name", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    reviews: (_parent, _args, context) => __awaiter(void 0, void 0, void 0, function* () {
+    reviews: () => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const reviews = yield context.prisma.review.findMany();
-            return reviews;
+            return yield (0, reviewModel_1.getAllReviews)();
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the reviews", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    reviewsByProductId: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { productId }, context) {
+    reviewsByProductId: (_parent_1, _a) => __awaiter(void 0, [_parent_1, _a], void 0, function* (_parent, { productId }) {
         try {
-            const reviews = yield context.prisma.review.findMany({ where: { productId } });
-            return reviews;
+            if (typeof productId !== "number") {
+                throw new apollo_server_errors_1.ApolloError("productId is required and must be a number", "Bad Request", { statusCode: 400 });
+            }
+            return yield (0, reviewModel_1.getReviewsByProductId)(productId);
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the reviews by product", "Internal Server Error", { statusCode: 500 });
         }
     }),
-    review: (_parent_1, _a, context_1) => __awaiter(void 0, [_parent_1, _a, context_1], void 0, function* (_parent, { reviewId }, context) {
+    review: (_parent_1, _a) => __awaiter(void 0, [_parent_1, _a], void 0, function* (_parent, { reviewId }) {
         try {
-            const review = yield context.prisma.review.findUnique({ where: { id: reviewId } });
-            return review;
+            if (typeof reviewId !== "number") {
+                throw new apollo_server_errors_1.ApolloError("reviewId is required and must be a number", "Bad Request", { statusCode: 400 });
+            }
+            return yield (0, reviewModel_1.getReviewById)(reviewId);
         }
         catch (err) {
             throw new apollo_server_errors_1.ApolloError("An error occurred while fetching the review", "Internal Server Error", { statusCode: 500 });

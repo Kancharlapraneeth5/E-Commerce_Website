@@ -17,3 +17,15 @@ export const getUserByUsername = async (username: string) => {
 export const getAllUsers = async () => {
 	return prisma.people.findMany();
 };
+
+export const updateUserById = async (id: number, data: any) => {
+  return prisma.people.update({ where: { id }, data });
+};
+
+export const findUserByRefreshToken = async (refreshToken: string) => {
+  return prisma.people.findFirst({ where: { refreshToken } });
+};
+
+export const clearUserRefreshToken = async (id: number) => {
+  return prisma.people.update({ where: { id }, data: { refreshToken: null } });
+};

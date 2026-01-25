@@ -51,19 +51,19 @@ export interface updateCartInput {
 }
 
 export interface deleteCategoryQuery {
-  categoryId: number;
+  categoryID: number;
 }
 
 export interface deleteProductQuery {
-  productId: number;
+  productID: number;
 }
 
 export interface deleteReviewQuery {
-  reviewId: number;
+  reviewID: number;
 }
 
 export interface updateCategoryInput {
-  categoryName: string;
+  name: string;
 }
 
 export interface Context {
