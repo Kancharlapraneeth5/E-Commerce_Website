@@ -1,5 +1,5 @@
 import express from "express";
-import PeopleModel from "../models/peopleModelImpl";
+import { getUserById, getUserByUsername, updateUserById, findUserByRefreshToken, clearUserRefreshToken } from "../models/peopleModel";
 import { hashPassword, comparePassword, generateAccessToken, generateRefreshToken } from "./authUtils";
 import jwt, { Secret } from "jsonwebtoken";
 
@@ -13,7 +13,7 @@ router.post("/login", async (req, res) => {
     return res.status(400).json({ error: "Username and password are required" });
   }
 
-  const user = await PeopleModel.findOne({ username });
+  const user = await getUserByUsername(username);
   if (!user || !(await comparePassword(password, user.password))) {
     return res.status(401).json({ error: "Invalid login credentials" });
   }
@@ -23,8 +23,7 @@ router.post("/login", async (req, res) => {
   const refreshToken = generateRefreshToken(tokenPayload);
 
   // ✅ Save refresh token
-  user.refreshToken = refreshToken;
-  await user.save();
+  await updateUserById(user.id, { refreshToken });
 
   res.json({ accessToken, refreshToken });
 });
@@ -36,7 +35,7 @@ router.post("/refresh", async (req, res) => {
     return res.status(401).json({ error: "No refresh token provided" });
   }
 
-  const user = await PeopleModel.findOne({ refreshToken });
+  const user = await findUserByRefreshToken(refreshToken);
   if (!user) {
     return res.status(401).json({ error: "Invalid refresh token" });
   }
@@ -50,11 +49,9 @@ router.post("/refresh", async (req, res) => {
 // 🟢 Logout
 router.post("/logout", async (req, res) => {
   const { refreshToken } = req.body;
-  const user = await PeopleModel.findOne({ refreshToken });
-
+  const user = await findUserByRefreshToken(refreshToken);
   if (user) {
-    user.refreshToken = null;
-    await user.save();
+    await clearUserRefreshToken(user.id);
   }
 
   res.json({ message: "User logged out" });
@@ -79,15 +76,11 @@ router.post("/passwordreset", async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as Secret);
-    const user = await PeopleModel.findById((decoded as { id: string }).id);
-
+    const user = await getUserById((decoded as { id: number }).id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
-    user.password = await hashPassword(newPassword);
-    await user.save();
-
+    await updateUserById(user.id, { password: await hashPassword(newPassword) });
     res.json({ message: "Password updated successfully" });
   } catch (error) {
     return res.status(400).json({ error: "Invalid or expired token" });

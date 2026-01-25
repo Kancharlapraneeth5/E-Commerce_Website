@@ -1,6 +1,4 @@
-import mongoose, { Document, Model } from "mongoose";
-import { Types } from "mongoose";
-
+// Use Prisma client and types
 export interface CategoryInput {
   name: string;
 }
@@ -11,7 +9,7 @@ export interface ProductInput {
   price: number;
   onSale: boolean;
   quantity: number;
-  categoryId: string;
+  categoryId: number;
   description: string;
 }
 
@@ -24,7 +22,7 @@ export interface ReviewInput {
   title: string;
   comment: string;
   rating: number;
-  productId: string;
+  productId: number;
 }
 
 export interface UserInput {
@@ -34,68 +32,48 @@ export interface UserInput {
 }
 
 export interface addToCartInput {
-  userId: Types.ObjectId;
+  userId: number;
   items: Array<{
-    productId: Types.ObjectId;
+    productId: number;
     quantity: number;
   }>;
 }
 
 export interface removeFromCartInput {
-  userId: Types.ObjectId;
-  productId: Types.ObjectId;
+  userId: number;
+  productId: number;
 }
 
 export interface updateCartInput {
-  userId: Types.ObjectId;
-  productId: Types.ObjectId;
+  userId: number;
+  productId: number;
   quantity: number;
-}
-
-export interface OrderItem {
-  productId: string;
-  quantity: number;
-  priceAtPurchase: number;
-}
-
-export interface Order {
-  userId: string;
-  items: OrderItem[];
-  totalAmount: number;
-  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
-  createdAt?: Date;
 }
 
 export interface deleteCategoryQuery {
-  categoryId: Types.ObjectId;
+  categoryID: number;
 }
 
 export interface deleteProductQuery {
-  productId: Types.ObjectId;
+  productID: number;
 }
 
 export interface deleteReviewQuery {
-  reviewId: Types.ObjectId;
+  reviewID: number;
 }
 
 export interface updateCategoryInput {
-  categoryName: string;
+  name: string;
 }
 
 export interface Context {
+  prisma: any;
   user: {
-    _id: string;
+    id: number;
     username: string;
     password: string;
     role: string;
-    __v: number;
   };
-  CategoryModel: Model<Document>;
-  ProductModel: Model<Document>;
-  ReviewModel: Model<Document>;
-  PeopleModel: Model<Document>;
-  CartModel: Model<Document>;
-  OrderModel: Model<Document>;
 }
 
 export interface MyError {

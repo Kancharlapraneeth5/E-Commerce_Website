@@ -1,35 +1,27 @@
-import { Document, Model } from "mongoose";
-
-export interface filterProducts {
-  // In TypeScript, the ? symbol is used to mark a property as optional.
-  // By adding a ? after the property name, you're telling TypeScript that this property might not always be present.
+// Use Prisma client and types
+export interface FilterProducts {
   onSale?: boolean;
 }
 
 export interface Args {
-  filter: filterProducts;
-  productId: string;
-  productName: string;
-  categoryId: string;
-  categoryName: string;
-  reviewId: string;
-  minRating: number;
-  maxRating: number;
-  userId: string;
+  filter?: FilterProducts;
+  productId?: number;
+  productName?: string;
+  categoryId?: number;
+  categoryName?: string;
+  reviewId?: number;
+  minRating?: number;
+  maxRating?: number;
+  userId?: number;
 }
 
 export interface Context {
-  ProductModel: Model<Document>;
-  CategoryModel: Model<Document>;
-  ReviewModel: Model<Document>;
-  CartModel: Model<Document>;
-  PeopleModel: Model<Document>;
+  prisma: any;
   user: {
-    _id: string;
+    id: number;
     username: string;
     password: string;
     role: string;
-    __v: number;
   };
 }
 
