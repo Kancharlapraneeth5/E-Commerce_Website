@@ -13,6 +13,7 @@ import { Category } from "./resolvers/CategoryImpl";
 import { Product } from "./resolvers/ProductImpl";
 import { PrismaClient } from "@prisma/client";
 import { authRouter } from "./auth/authController";
+import razorpayRouter from "./auth/razorpayController";
 
 // Load environment variables based on NODE_ENV
 const environment = process.env.NODE_ENV || "development";
@@ -72,7 +73,7 @@ app.options(
 
 // Use JSON body parser
 app.use(express.json());
-import razorpayRouter from "./auth/razorpayController";
+
 app.use("/auth", authRouter);
 app.use("/api/payment/razorpay", razorpayRouter);
 
