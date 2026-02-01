@@ -3,6 +3,8 @@ import { Args, Context } from "./Query";
 import { getAllProducts, getProductById, getProductByName, getProductsByCategory } from "../models/productModel";
 import { getAllCategories, getCategoryById, getCategoryByName } from "../models/categoryModel";
 import { getAllReviews, getReviewById, getReviewsByProductId } from "../models/reviewModel";
+import { getOrdersByUserId, getOrderById, getOrderByIdSimple } from "../models/orderModel";
+import { getPaymentById, getPaymentsByOrderId, getPaymentsByUserId } from "../models/paymentModel";
 
 export const Query = {
   products: async (_parent: any, { filter }: Args) => {
@@ -129,6 +131,70 @@ export const Query = {
       return cart || null;
     } catch (err) {
       throw new ApolloError("An error occurred while fetching the cart", "Internal Server Error", { statusCode: 500 });
+    }
+  },
+
+  orders: async (_parent: any, _args: any, context: Context) => {
+    // List all orders for authenticated user
+    try {
+      if (!context.user) throw new ApolloError("Authentication required", "Forbidden", { statusCode: 403 });
+      return await getOrdersByUserId(context.prisma, context.user.id);
+    } catch (err) {
+      throw new ApolloError("An error occurred while fetching orders", "Internal Server Error", { statusCode: 500 });
+    }
+  },
+
+  order: async (_parent: any, { orderId }: { orderId: number }, context: Context) => {
+    // Get details of a specific order
+    try {
+      if (!context.user) throw new ApolloError("Authentication required", "Forbidden", { statusCode: 403 });
+      const order = await getOrderById(context.prisma, orderId);
+      if (!order || order.userId !== context.user.id) throw new ApolloError("Order not found or access denied", "Not Found", { statusCode: 404 });
+      return order;
+    } catch (err) {
+      throw new ApolloError("An error occurred while fetching the order", "Internal Server Error", { statusCode: 500 });
+    }
+  },
+
+  // Payment read operations
+  payment: async (_parent: any, { paymentId }: { paymentId: number }, context: Context) => {
+    try {
+      if (!context.user) throw new ApolloError("Authentication required", "Forbidden", { statusCode: 403 });
+      const payment = await getPaymentById(context.prisma, paymentId);
+      if (!payment) throw new ApolloError("Payment not found", "Not Found", { statusCode: 404 });
+      // Optionally, check if user is allowed to view this payment (by order ownership)
+      const order = payment.orderId ? await getOrderByIdSimple(context.prisma, payment.orderId) : null;
+      if (order && order.userId !== context.user.id && context.user.role !== "admin") {
+        throw new ApolloError("Access denied", "Forbidden", { statusCode: 403 });
+      }
+      return payment;
+    } catch (err) {
+      throw new ApolloError("An error occurred while fetching the payment", "Internal Server Error", { statusCode: 500 });
+    }
+  },
+
+  paymentsByOrder: async (_parent: any, { orderId }: { orderId: number }, context: Context) => {
+    try {
+      if (!context.user) throw new ApolloError("Authentication required", "Forbidden", { statusCode: 403 });
+      const order = await getOrderByIdSimple(context.prisma, orderId);
+      if (!order || order.userId !== context.user.id) throw new ApolloError("Order not found or access denied", "Not Found", { statusCode: 404 });
+      const payments = await getPaymentsByOrderId(context.prisma, orderId);
+      return payments;
+    } catch (err) {
+      throw new ApolloError("An error occurred while fetching payments for the order", "Internal Server Error", { statusCode: 500 });
+    }
+  },
+
+  paymentsByUser: async (_parent: any, { userId }: { userId: number }, context: Context) => {
+    try {
+      if (!context.user) throw new ApolloError("Authentication required", "Forbidden", { statusCode: 403 });
+      if (context.user.id !== userId && context.user.role !== "admin") {
+        throw new ApolloError("Access denied", "Forbidden", { statusCode: 403 });
+      }
+      const payments = await getPaymentsByUserId(context.prisma, userId);
+      return payments;
+    } catch (err) {
+      throw new ApolloError("An error occurred while fetching payments for the user", "Internal Server Error", { statusCode: 500 });
     }
   },
   };

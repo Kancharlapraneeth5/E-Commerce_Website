@@ -72,7 +72,9 @@ app.options(
 
 // Use JSON body parser
 app.use(express.json());
+import razorpayRouter from "./auth/razorpayController";
 app.use("/auth", authRouter);
+app.use("/api/payment/razorpay", razorpayRouter);
 
 // handling the uncaught exceptions
 process.on("uncaughtException", (err: Error) => {

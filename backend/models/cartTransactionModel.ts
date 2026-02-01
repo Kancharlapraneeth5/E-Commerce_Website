@@ -9,10 +9,10 @@ export async function addToCartTransaction(userId: number, items: Array<{ produc
       if (!product) {
         throw new ApolloError("Product not found", "Not Found", { statusCode: 404 });
       }
-      if (product.quantity < item.quantity) {
-        throw new ApolloError(`Requested quantity exceeds available stock for product ${item.productId}`, "Bad Request", { statusCode: 400 });
+      // No inventory change here, just check if requested quantity is positive
+      if (item.quantity <= 0) {
+        throw new ApolloError(`Quantity must be greater than zero for product ${item.productId}`, "Bad Request", { statusCode: 400 });
       }
-      await tx.product.update({ where: { id: item.productId }, data: { quantity: { decrement: item.quantity } } });
     }
     // Find or create cart first
     let cart = await tx.cart.findUnique({ where: { userId }, include: { items: true } }) as { id: number, items: Array<{ id: number, productId: number, quantity: number }> } | null;

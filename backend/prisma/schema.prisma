@@ -14,7 +14,9 @@ model People {
   role         String
   refreshToken String?
   reviews      Review[]
+  orders       Order[]
   cart         Cart?
+  orderStatusHistories OrderStatusHistory[]
 }
 
 model Category {
@@ -35,6 +37,7 @@ model Product {
   categoryId  Int
   reviews     Review[]
   cartItems   CartItem[]
+  orderItems  OrderItem[]
 }
 
 model Review {
@@ -65,4 +68,82 @@ model CartItem {
   product   Product  @relation(fields: [productId], references: [id])
   productId Int
   quantity  Int
+}
+
+
+// Order Management
+model Order {
+  id             Int         @id @default(autoincrement())
+  user           People      @relation(fields: [userId], references: [id])
+  userId         Int
+  status         OrderStatus @default(PENDING)
+  totalAmount    Float
+  paymentId      String?
+  shippingAddress String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  items          OrderItem[]
+  statusHistories OrderStatusHistory[]
+  payment        Payment[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int
+  price     Float
+}
+
+enum OrderStatus {
+  PENDING
+  PENDING_PAYMENT
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// Payment status enum
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+// Payment method enum
+enum PaymentMethod {
+  CARD
+  UPI
+  NETBANKING
+  WALLET
+  COD
+}
+
+// Payment model
+model Payment {
+  id           Int           @id @default(autoincrement())
+  order        Order?        @relation(fields: [orderId], references: [id])
+  orderId      Int?          @unique
+  amount       Float
+  status       PaymentStatus @default(PENDING)
+  method       PaymentMethod
+  transactionId String?      // Gateway transaction reference
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+// Order status change history
+model OrderStatusHistory {
+  id         Int         @id @default(autoincrement())
+  order      Order       @relation(fields: [orderId], references: [id])
+  orderId    Int
+  oldStatus  OrderStatus
+  newStatus  OrderStatus
+  changedBy  People      @relation(fields: [changedById], references: [id])
+  changedById Int
+  changedAt  DateTime    @default(now())
 }

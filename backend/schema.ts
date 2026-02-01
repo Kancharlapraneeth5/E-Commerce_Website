@@ -18,6 +18,9 @@ export const typeDefs = gql`
     ): [Product]
     productsByCategory(categoryId: Int!): [Product]
     getCart(userId: Int!): Cart
+
+    orders: [Order!]!
+    order(orderId: Int!): Order
   }
 
   type Mutation {
@@ -33,7 +36,43 @@ export const typeDefs = gql`
     addToCart(input: AddToCartInput!): Cart!
     removeFromCart(input: removeFromCartInput!): Boolean!
     updateCart(input: updateCartInput!): Cart!
+
+    createOrder(input: CreateOrderInput!): Order!
+    updateOrderStatus(orderId: Int!, status: OrderStatus!): Order!
+    cancelOrder(orderId: Int!): Boolean!
   }
+    type Order {
+      id: Int!
+      userId: Int!
+      status: OrderStatus!
+      totalAmount: Float!
+      paymentId: String
+      shippingAddress: String!
+      createdAt: String!
+      updatedAt: String!
+      items: [OrderItem!]!
+    }
+
+    type OrderItem {
+      id: Int!
+      orderId: Int!
+      productId: Int!
+      quantity: Int!
+      price: Float!
+    }
+
+    enum OrderStatus {
+      PENDING
+      PAID
+      SHIPPED
+      DELIVERED
+      CANCELLED
+    }
+
+    input CreateOrderInput {
+      userId: Int!
+      shippingAddress: String!
+    }
   type Product {
     id: Int!
     name: String!

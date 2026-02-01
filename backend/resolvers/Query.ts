@@ -13,6 +13,7 @@ export interface Args {
   minRating?: number;
   maxRating?: number;
   userId?: number;
+  orderId?: number;
 }
 
 export interface Context {

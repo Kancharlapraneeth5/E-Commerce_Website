@@ -39,3 +39,12 @@ export const getCartItemsByUserId = async (userId: number) => {
 	if (!cart) return [];
 	return prisma.cartItem.findMany({ where: { cartId: cart.id } });
 };
+
+// Clear cart for a user
+export const clearCartByUserId = async (prisma: PrismaClient, userId: number) => {
+	const cart = await prisma.cart.findUnique({ where: { userId }, include: { items: true } });
+	if (!cart) return;
+	for (const item of cart.items) {
+		await prisma.cartItem.delete({ where: { id: item.id } });
+	}
+};

@@ -21,8 +21,44 @@ import { getReviewById, getReviewsByProductId, getAllReviews, createReview, dele
 import { getUserById, getUserByUsername, getAllUsers, createUser } from "../models/peopleModel";
 import { getCartByUserId, getCartItem, createCart, upsertCart, updateCartItem, deleteCartItem } from "../models/cartModel";
 import { addToCartTransaction, removeFromCartTransaction, updateCartTransaction } from "../models/cartTransactionModel";
+import { createOrderFromCart, updateOrderStatus, cancelOrder } from "../models/orderMutationModel";
+import { updatePaymentStatus, updatePaymentTransactionId, updatePaymentMethod, deletePayment } from "../models/paymentMutationModel";
+import { PaymentStatus, PaymentMethod } from "@prisma/client";
 
 export const Mutation = {
+  createOrder: async (_parent: any, { input }: { input: { userId: number, shippingAddress: string } }, context: Context) => {
+    if (!context.user || context.user.id !== input.userId) throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
+    try {
+      const order = await createOrderFromCart(context.prisma, input.userId, input.shippingAddress);
+      return order;
+    } catch (err: any) {
+      throw new ApolloError(err.message || "An error occurred while creating the order", "Internal Server Error", { statusCode: 500 });
+    }
+  },
+
+  updateOrderStatus: async (_parent: any, { orderId, status }: { orderId: number, status: string }, context: Context) => {
+    if (!context.user || context.user.role !== "admin") throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
+    try {
+      const updatedOrder = await updateOrderStatus(context.prisma, orderId, status);
+      return updatedOrder;
+    } catch (err: any) {
+      throw new ApolloError(err.message || "An error occurred while updating order status", "Internal Server Error", { statusCode: 500 });
+    }
+  },
+
+  cancelOrder: async (_parent: any, { orderId }: { orderId: number }, context: Context) => {
+    if (!context.user) throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
+    // Only allow cancel if order belongs to user and is pending
+    const order = await context.prisma.order.findUnique({ where: { id: orderId } });
+    if (!order || order.userId !== context.user.id) throw new ApolloError("Order not found or access denied", "Not Found", { statusCode: 404 });
+    if (order.status !== "PENDING") throw new ApolloError("Only pending orders can be cancelled", "Bad Request", { statusCode: 400 });
+    try {
+      await cancelOrder(context.prisma, orderId);
+      return true;
+    } catch (err: any) {
+      throw new ApolloError(err.message || "An error occurred while cancelling the order", "Internal Server Error", { statusCode: 500 });
+    }
+  },
   addNewCategory: async (_parent: any, { input }: { input: CategoryInput }, context: Context) => {
     if (context.user.role !== "admin") {
       throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
@@ -227,6 +263,46 @@ export const Mutation = {
       return updatedCart;
     } catch (err) {
       throw err;
+    }
+  },
+  
+  updatePaymentStatus: async (_parent: any, { paymentId, status }: { paymentId: number, status: string }, context: Context) => {
+    if (!context.user || context.user.role !== "admin") throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
+    try {
+      const updated = await updatePaymentStatus(context.prisma, paymentId, status as PaymentStatus);
+      return updated;
+    } catch (err: any) {
+      throw new ApolloError(err.message || "An error occurred while updating payment status", "Internal Server Error", { statusCode: 500 });
+    }
+  },
+
+  updatePaymentTransactionId: async (_parent: any, { paymentId, transactionId }: { paymentId: number, transactionId: string }, context: Context) => {
+    if (!context.user || context.user.role !== "admin") throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
+    try {
+      const updated = await updatePaymentTransactionId(context.prisma, paymentId, transactionId);
+      return updated;
+    } catch (err: any) {
+      throw new ApolloError(err.message || "An error occurred while updating payment transactionId", "Internal Server Error", { statusCode: 500 });
+    }
+  },
+
+  updatePaymentMethod: async (_parent: any, { paymentId, method }: { paymentId: number, method: string }, context: Context) => {
+    if (!context.user || context.user.role !== "admin") throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
+    try {
+      const updated = await updatePaymentMethod(context.prisma, paymentId, method as PaymentMethod);
+      return updated;
+    } catch (err: any) {
+      throw new ApolloError(err.message || "An error occurred while updating payment method", "Internal Server Error", { statusCode: 500 });
+    }
+  },
+
+  deletePayment: async (_parent: any, { paymentId }: { paymentId: number }, context: Context) => {
+    if (!context.user || context.user.role !== "admin") throw new ApolloError("Permission Denied!", "Forbidden", { statusCode: 403 });
+    try {
+      await deletePayment(context.prisma, paymentId);
+      return true;
+    } catch (err: any) {
+      throw new ApolloError(err.message || "An error occurred while deleting the payment", "Internal Server Error", { statusCode: 500 });
     }
   },
 };
